@@ -7,6 +7,8 @@
 #include <string>
 
 #include "Buffer.h"
+#include "Attribute.h"
+#include "VertexArray.h"
 
 static std::string readFile(const std::string& path) {
     std::ifstream stream(path);
@@ -131,18 +133,24 @@ int main() {
         2, 3, 0
     };
 
-    GLuint vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao); 
+    VertexArray vao;
 
-    VertexBuffer vbo(vertices, 8);
-    vbo.bind();
+    vao.setIndexBuffer(IndexBuffer(indices, 6));
+    vao.setVertexBuffer(VertexBuffer(vertices, 8, { {/*type*/GLtype::FLOAT, /*count*/2, /*normalized*/false} }));
+    vao.bind();
 
-    VertexAttrib attrib({ {/*type*/GLtype::FLOAT, /*count*/2, /*normalized*/false}});
-    attrib.bind();
-    
-    IndexBuffer ibo(indices, 6);
-    ibo.bind();
+    //GLuint vao;
+    //glGenVertexArrays(1, &vao);
+    //glBindVertexArray(vao); 
+
+    //VertexBuffer vbo(vertices, 8);
+    //vbo.bind();
+
+    //BufferLayout attrib({ {/*type*/GLtype::FLOAT, /*count*/2, /*normalized*/false} });
+    //attrib.bind();
+
+    //IndexBuffer ibo(indices, 6);
+    //ibo.bind();
 
     GLuint shader = createShader("res/shaders/VertexShader.shader", "res/shaders/FragmentShader.shader");
     glUseProgram(shader);

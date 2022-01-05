@@ -1,7 +1,5 @@
 ﻿  Buffer.cpp
-D:\repo\OpenGL\OpenGL\src\Buffer.cpp(75,138): warning C4312: 'type cast': conversion from 'const uint32_t' to 'const void *' of greater size
+  VertexArray.cpp
   main.cpp
-D:\repo\OpenGL\OpenGL\src\main.cpp(152,22): warning C4305: 'initializing': truncation from 'double' to 'float'
   Generating Code...
-D:\repo\OpenGL\OpenGL\src\Buffer.h(59): warning C4715: 'VertexAttribElem::size': not all control paths return a value
   OpenGL.vcxproj -> D:\repo\OpenGL\x64\Debug\OpenGL.exe

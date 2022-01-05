@@ -1,34 +1,38 @@
 #pragma once
 
 #include <iostream>
-#include <vector>
 
-enum class GLtype {
-	BYTE = 0x1400,
-	BOOL = 0x8B56,
-	UINT = 0x1405,
-	INT  = 0x1404,
-	FLOAT = 0x1406,
-};
+#include "Attribute.h"
 
 class VertexBuffer {
 
 public:
+	VertexBuffer() = default;
+
 	VertexBuffer(float* vertices, uint32_t size);
+	VertexBuffer(float* vertices, uint32_t size, const BufferLayout& attribs);
+	~VertexBuffer();
 
 	void setBuffer(float* vertices, uint32_t size);
+
+	const BufferLayout& getAttribs() const;
+	void setAttribs(const BufferLayout& attribs);
 
 	void bind() const;
 	void unbind() const;
 
 private:
-	uint32_t mRendererID;
+	uint32_t  mRendererID;
+	BufferLayout mAttribs;
 };
 
 class IndexBuffer {
 
 public:
+	IndexBuffer() = default;
+
 	IndexBuffer(uint32_t* indices, uint32_t size);
+	~IndexBuffer();
 
 	void setBuffer(uint32_t* indices, uint32_t size);
 
@@ -40,32 +44,3 @@ private:
 	uint32_t mIndexCount;
 };
 
-struct VertexAttribElem {
-	GLtype type;
-	uint32_t count;
-	bool normalized;
-	uint32_t offset;
-
-	uint32_t size() const {
-		switch (type) {
-		case GLtype::BYTE:
-		case GLtype::BOOL:
-			return 1;
-		case GLtype::UINT:
-		case GLtype::INT:
-		case  GLtype::FLOAT:
-			return 4;
-		}
-	}
-};
-
-class VertexAttrib {
-
-public:
-	VertexAttrib(const std::initializer_list<VertexAttribElem>& elems);
-
-	void bind() const;
-
-private:
-	std::vector<VertexAttribElem> mElems;
-};
