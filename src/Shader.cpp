@@ -59,6 +59,10 @@ template<> void Shader::setUniform(const std::string& name, float f1) {
     glUniform1f(getUniformLocation(name), f1);
 }
 
+template<> void Shader::setUniform(const std::string& name, int i1) {
+    glUniform1i(getUniformLocation(name), i1); 
+}
+
 uint32_t Shader::compileShader(GLtype shaderType, const std::string& shaderSrc) {
 	uint32_t id = glCreateShader((uint32_t)shaderType);
 

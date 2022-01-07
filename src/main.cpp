@@ -9,6 +9,7 @@
 #include "Buffer.h"
 #include "Attribute.h"
 #include "VertexArray.h"
+#include "Texture.h"
 #include "Shader.h"
 
 #define ARR_SZ(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
@@ -23,50 +24,6 @@ static std::string readFile(const std::string& path) {
     }
 
     return source;
-}
-
-static GLuint compileShader(GLenum type, const std::string& src) {
-    GLuint id = glCreateShader(type);
-    const char* csrc = src.c_str();
-
-    /* Creates a shader source from csrc*/
-    glShaderSource(id, 1, &csrc, 0);
-    glCompileShader(id);
-
-    GLint result;
-    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-
-    if (result == GL_FALSE) {
-        GLint len;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &len);
-
-        char* mes = (char*)_malloca(len);
-        glGetShaderInfoLog(id, len, &len, mes);
-        printf("Failed to compile shader(%d)-> %s", (int)type, mes);
-
-        glDeleteShader(id);
-        return 0;
-    }
-
-    return id;
-} 
-
-static GLuint createShader(const std::string& vertPath, const std::string& fragPath) {
-    GLuint id = glCreateProgram();
-    GLuint vs = compileShader(GL_VERTEX_SHADER, readFile(vertPath));
-    GLuint fs = compileShader(GL_FRAGMENT_SHADER, readFile(fragPath));
-
-    glAttachShader(id, vs);
-    glAttachShader(id, fs);
-    glLinkProgram(id);
-
-    glValidateProgram(id);
-
-    /* Delete intermidiary shader files */
-    glDeleteShader(vs);
-    glDeleteShader(fs);
-
-    return id;
 }
 
 static void glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
@@ -118,15 +75,19 @@ int main() {
     }
 
     printf("%s\n", glGetString(GL_VERSION));
+    printf("have %d texture slots", Texture::textureSlotCount());
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
 
     //glDebugMessageCallback(glDebugCallback, nullptr);
 
     /* Vertex buffer */
     float vertices[] = {
-        -0.5f, -0.5f,
-         0.5f, -0.5f,
-         0.5f,  0.5f, 
-        -0.5f,  0.5f,
+        /*Pos*/-1.0f, -1.0f,/*UV*/0.0f, 0.0f,
+        /*Pos*/ 1.0f, -1.0f,/*UV*/1.0f, 0.0f,
+        /*Pos*/ 1.0f,  1.0f,/*UV*/1.0f, 1.0f, 
+        /*Pos*/-1.0f,  1.0f,/*UV*/0.0f, 1.0f,
     };
 
     /* Index buffer */
@@ -137,11 +98,16 @@ int main() {
 
     VertexArray vao;
     vao.setIndexBuffer(IndexBuffer(indices, 6));
-    vao.setVertexBuffer(VertexBuffer(vertices, 8), BufferLayout({ {"pos", GLtype::FLOAT, 2, false} }));
+    vao.setVertexBuffer(VertexBuffer(vertices, 16), BufferLayout({ {"pos", GLtype::FLOAT, 2, false}, {"uv", GLtype::FLOAT, 2, false} }));
     vao.bind();
 
     Shader shader(readFile("res/shaders/VertexShader.shader"), readFile("res/shaders/FragmentShader.shader"));
     shader.bind();
+
+    Texture tex("res/textures/doggo.png");
+    tex.bind();
+
+    shader.setUniform("u_Texture", 0);
 
     int loc = shader.getUniformLocation("u_Color");
     float r = 0.0f, incr = 0.05f;

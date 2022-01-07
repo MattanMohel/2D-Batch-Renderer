@@ -26,6 +26,7 @@ public:
 	template<> void setUniform(const std::string& name, float f1, float f2, float f3);
 	template<> void setUniform(const std::string& name, float f1, float f2);
 	template<> void setUniform(const std::string& name, float f1);
+	template<> void setUniform(const std::string& name, int f1);
 
 	static uint32_t compileShader(GLtype shaderType, const std::string& shaderSrc);
 
