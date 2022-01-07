@@ -1,21 +1,17 @@
 #pragma once
 
-#include <iostream>
+#include <cstdint>
+#include <string>
 #include <vector>
 
-enum class GLtype {
-	BYTE = 0x1400,
-	BOOL = 0x8B56,
-	UINT = 0x1405,
-	INT = 0x1404,
-	FLOAT = 0x1406,
-};
+#include "GLtype.h"
 
 struct BufferAttrib {
-	GLtype type;
-	uint32_t count;
-	bool normalized;
-	uint32_t offset;
+	std::string name = "";
+	GLtype type = GLtype::FLOAT;
+	uint32_t count = 0;
+	bool normalized = false;
+	uint32_t offset = 0;
 
 	uint32_t size() const {
 		switch (type) {
@@ -27,6 +23,8 @@ struct BufferAttrib {
 		case  GLtype::FLOAT:
 			return 4;
 		}
+
+		return 0;
 	}
 };
 

@@ -9,6 +9,9 @@
 #include "Buffer.h"
 #include "Attribute.h"
 #include "VertexArray.h"
+#include "Shader.h"
+
+#define ARR_SZ(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 
 static std::string readFile(const std::string& path) {
     std::ifstream stream(path);
@@ -19,7 +22,7 @@ static std::string readFile(const std::string& path) {
         source += "\n";
     }
 
-    return source.c_str();
+    return source;
 }
 
 static GLuint compileShader(GLenum type, const std::string& src) {
@@ -37,7 +40,7 @@ static GLuint compileShader(GLenum type, const std::string& src) {
         GLint len;
         glGetShaderiv(id, GL_INFO_LOG_LENGTH, &len);
 
-        char* mes = (char*)alloca(len);
+        char* mes = (char*)_malloca(len);
         glGetShaderInfoLog(id, len, &len, mes);
         printf("Failed to compile shader(%d)-> %s", (int)type, mes);
 
@@ -48,7 +51,6 @@ static GLuint compileShader(GLenum type, const std::string& src) {
     return id;
 } 
 
-/* creates shader from actual source code */
 static GLuint createShader(const std::string& vertPath, const std::string& fragPath) {
     GLuint id = glCreateProgram();
     GLuint vs = compileShader(GL_VERTEX_SHADER, readFile(vertPath));
@@ -117,13 +119,13 @@ int main() {
 
     printf("%s\n", glGetString(GL_VERSION));
 
-    glDebugMessageCallback(glDebugCallback, nullptr);
+    //glDebugMessageCallback(glDebugCallback, nullptr);
 
     /* Vertex buffer */
     float vertices[] = {
         -0.5f, -0.5f,
          0.5f, -0.5f,
-         0.5f,  0.5f,
+         0.5f,  0.5f, 
         -0.5f,  0.5f,
     };
 
@@ -134,28 +136,14 @@ int main() {
     };
 
     VertexArray vao;
-
     vao.setIndexBuffer(IndexBuffer(indices, 6));
-    vao.setVertexBuffer(VertexBuffer(vertices, 8, { {/*type*/GLtype::FLOAT, /*count*/2, /*normalized*/false} }));
+    vao.setVertexBuffer(VertexBuffer(vertices, 8), BufferLayout({ {"pos", GLtype::FLOAT, 2, false} }));
     vao.bind();
 
-    //GLuint vao;
-    //glGenVertexArrays(1, &vao);
-    //glBindVertexArray(vao); 
+    Shader shader(readFile("res/shaders/VertexShader.shader"), readFile("res/shaders/FragmentShader.shader"));
+    shader.bind();
 
-    //VertexBuffer vbo(vertices, 8);
-    //vbo.bind();
-
-    //BufferLayout attrib({ {/*type*/GLtype::FLOAT, /*count*/2, /*normalized*/false} });
-    //attrib.bind();
-
-    //IndexBuffer ibo(indices, 6);
-    //ibo.bind();
-
-    GLuint shader = createShader("res/shaders/VertexShader.shader", "res/shaders/FragmentShader.shader");
-    glUseProgram(shader);
-
-    int loc = glGetUniformLocation(shader, "u_Color");
+    int loc = shader.getUniformLocation("u_Color");
     float r = 0.0f, incr = 0.05f;
 
     /* Loop until the user closes the window */
@@ -163,7 +151,7 @@ int main() {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUniform4f(loc, r, 0.3f, 0.0f, 1.0f);
+        shader.setUniform("u_Color", r, 0.3f, 0.0f, 1.0f);
 
         if (r > 1 || r < 0) {
             incr *= -1;
@@ -178,8 +166,6 @@ int main() {
         /* Poll for and process events */
         glfwPollEvents();
     }
-
-    glDeleteProgram(shader);
 
     glfwTerminate();
 }

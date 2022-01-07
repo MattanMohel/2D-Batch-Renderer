@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Attribute.cpp" />
     <ClCompile Include="src\Buffer.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -161,6 +162,8 @@
     <None Include="res\shaders\VertexShader.shader" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\GLtype.h" />
+    <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\Attribute.h" />
     <ClInclude Include="src\Buffer.h" />
     <ClInclude Include="src\VertexArray.h" />

@@ -37,7 +37,7 @@ void BufferLayout::bind() const {
 
 	for (auto& elem : mAttribs) {
 		glEnableVertexAttribArray(attribIndex);
-		glVertexAttribPointer(attribIndex,elem.count, (uint32_t)elem.type, elem.normalized,
+		glVertexAttribPointer(attribIndex, elem.count, (uint32_t)elem.type, elem.normalized,
 			/*stride of vertex in bytes*/mVertexStride, 
 			/*offset of attrib in bytes*/(const void*)elem.offset);
 

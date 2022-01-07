@@ -8,6 +8,10 @@ VertexArray::VertexArray()
 	glGenVertexArrays(1, &mRendererID);
 }
 
+VertexArray::~VertexArray() {
+	glDeleteVertexArrays(1, &mRendererID);
+}
+
 void VertexArray::bind() const {
 	glBindVertexArray(mRendererID);
 }
@@ -16,24 +20,25 @@ void VertexArray::unbind() const {
 	glBindVertexArray(0);
 }
 
-void VertexArray::setVertexBuffer(const VertexBuffer& vertexBuffer) {
-	glBindVertexArray(mRendererID);
-
-	vertexBuffer.bind();
-	mVertexBuffer = vertexBuffer;
-
-	vertexBuffer.getAttribs().bind();
-
-	glBindVertexArray(0);
-	vertexBuffer.unbind();
-}
-
 void VertexArray::setIndexBuffer(const IndexBuffer& indexBuffer) {
 	glBindVertexArray(mRendererID);
 
-	indexBuffer.bind();
 	mIndexBuffer = indexBuffer;
+	mIndexBuffer.bind();
 
 	glBindVertexArray(0);
-	indexBuffer.unbind();
+	mIndexBuffer.unbind();
+}
+
+void VertexArray::setVertexBuffer(const VertexBuffer& vertexBuffer, const BufferLayout& bufferLayout) {
+	glBindVertexArray(mRendererID);
+
+	mVertexBuffer = vertexBuffer;
+	mBufferLayout = bufferLayout;
+	
+	mVertexBuffer.bind();
+	mBufferLayout.bind();
+
+	glBindVertexArray(0);
+	mVertexBuffer.unbind();
 }

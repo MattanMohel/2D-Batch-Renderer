@@ -13,15 +13,6 @@ VertexBuffer::VertexBuffer(float* vertices, uint32_t size) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-VertexBuffer::VertexBuffer(float* vertices, uint32_t size, const BufferLayout& attribs) 
-	: mAttribs(attribs) {
-
-	glGenBuffers(1, &mRendererID);
-	glBindBuffer(GL_ARRAY_BUFFER, mRendererID);
-	glBufferData(GL_ARRAY_BUFFER, size * sizeof(float), vertices, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
 VertexBuffer::~VertexBuffer() {
 	glDeleteBuffers(1, &mRendererID);
 }
@@ -30,14 +21,6 @@ void VertexBuffer::setBuffer(float* vertices, uint32_t size) {
 	glBindBuffer(GL_ARRAY_BUFFER, mRendererID);
 	glBufferData(GL_ARRAY_BUFFER, size * sizeof(float), vertices, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
-const BufferLayout& VertexBuffer::getAttribs() const {
-	return mAttribs;
-}
-
-void VertexBuffer::setAttribs(const BufferLayout& attribs) {
-	mAttribs = attribs;
 }
 
 void VertexBuffer::bind() const {

@@ -1,8 +1,6 @@
 #pragma once
 
-#include <iostream>
-
-#include "Attribute.h"
+#include <cstdint>
 
 class VertexBuffer {
 
@@ -10,20 +8,15 @@ public:
 	VertexBuffer() = default;
 
 	VertexBuffer(float* vertices, uint32_t size);
-	VertexBuffer(float* vertices, uint32_t size, const BufferLayout& attribs);
 	~VertexBuffer();
 
 	void setBuffer(float* vertices, uint32_t size);
-
-	const BufferLayout& getAttribs() const;
-	void setAttribs(const BufferLayout& attribs);
 
 	void bind() const;
 	void unbind() const;
 
 private:
-	uint32_t  mRendererID;
-	BufferLayout mAttribs;
+	uint32_t  mRendererID = -1;
 };
 
 class IndexBuffer {
@@ -40,7 +33,7 @@ public:
 	void unbind() const;
 
 private:
-	uint32_t mRendererID;
+	uint32_t mRendererID = -1;
 	uint32_t mIndexCount;
 };
 
