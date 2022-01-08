@@ -7,7 +7,6 @@
 #include "GLtype.h"
 
 struct BufferAttrib {
-	std::string name = "";
 	GLtype type = GLtype::FLOAT;
 	uint32_t count = 0;
 	bool normalized = false;

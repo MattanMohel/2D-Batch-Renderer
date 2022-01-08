@@ -1,2 +1,6 @@
 ﻿  main.cpp
+D:\repo\OpenGL\OpenGL\src\main.cpp(25,5): warning C4984: 'if constexpr' is a C++17 language extension
+glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'glew32s.lib(glew.obj)' or at 'D:\repo\OpenGL\x64\Debug\vc120.pdb'; linking object as if no debug info
+LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
+LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
   OpenGL.vcxproj -> D:\repo\OpenGL\x64\Debug\OpenGL.exe

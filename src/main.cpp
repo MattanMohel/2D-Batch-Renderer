@@ -11,8 +11,21 @@
 #include "VertexArray.h"
 #include "Texture.h"
 #include "Shader.h"
+#include "Renderer.h"
+
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #define ARR_SZ(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
+
+template<int SZ>
+void func() {
+    if constexpr (SZ == 1) {
+        static_assert(false, "do not 1");
+    }
+}
 
 static std::string readFile(const std::string& path) {
     std::ifstream stream(path);
@@ -24,23 +37,6 @@ static std::string readFile(const std::string& path) {
     }
 
     return source;
-}
-
-static void glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
-    switch (severity) {
-    case GL_DEBUG_SEVERITY_NOTIFICATION:
-        printf("notification: %s\n", message);
-        break;
-    case GL_DEBUG_SEVERITY_LOW:
-        printf("low-severity %s\n", message);
-        break;
-    case GL_DEBUG_SEVERITY_MEDIUM:
-        printf("medium-severity: %s\n", message);
-        break;
-    case GL_DEBUG_SEVERITY_HIGH:
-        printf("high-severity: %s\n", message);
-        __debugbreak();
-    }
 }
 
 int main() {
@@ -59,7 +55,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 640, "OpenGL-Testing", NULL, NULL);
+    window = glfwCreateWindow(960, 540, "OpenGL-Testing", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -74,57 +70,76 @@ int main() {
         printf("Error\n"); 
     }
 
-    printf("%s\n", glGetString(GL_VERSION));
-    printf("have %d texture slots", Texture::textureSlotCount());
-
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_BLEND);
-
-    //glDebugMessageCallback(glDebugCallback, nullptr);
+    Renderer::init();
 
     /* Vertex buffer */
     float vertices[] = {
-        /*Pos*/-1.0f, -1.0f,/*UV*/0.0f, 0.0f,
-        /*Pos*/ 1.0f, -1.0f,/*UV*/1.0f, 0.0f,
-        /*Pos*/ 1.0f,  1.0f,/*UV*/1.0f, 1.0f, 
-        /*Pos*/-1.0f,  1.0f,/*UV*/0.0f, 1.0f,
+        /*Pos*/-1.5f, -0.5f, /*RGBA*/ 1.0f, 0.0f, 0.0f, 1.0f, /*texture*/ 0.0f, /*UV*/ 0.0f, 0.0f, /*mvp*/ 0.0f,
+        /*Pos*/-0.5f, -0.5f, /*RGBA*/ 0.0f, 1.0f, 0.0f, 1.0f, /*texture*/ 0.0f, /*UV*/ 1.0f, 0.0f, /*mvp*/ 0.0f,
+        /*Pos*/-0.5f,  0.5f, /*RGBA*/ 0.0f, 0.0f, 1.0f, 1.0f, /*texture*/ 0.0f, /*UV*/ 1.0f, 1.0f, /*mvp*/ 0.0f,
+        /*Pos*/-1.5f,  0.5f, /*RGBA*/ 1.0f, 1.0f, 1.0f, 1.0f, /*texture*/ 0.0f, /*UV*/ 0.0f, 1.0f, /*mvp*/ 0.0f,     
+        
+        /*Pos*/-1.5f, -0.5f, /*RGBA*/ 1.0f, 0.0f, 0.0f, 1.0f, /*texture*/ 1.0f, /*UV*/ 0.0f, 0.0f, /*mvp*/ 1.0f,
+        /*Pos*/-0.5f, -0.5f, /*RGBA*/ 0.0f, 1.0f, 0.0f, 1.0f, /*texture*/ 1.0f, /*UV*/ 1.0f, 0.0f, /*mvp*/ 1.0f,
+        /*Pos*/-0.5f,  0.5f, /*RGBA*/ 0.0f, 0.0f, 1.0f, 1.0f, /*texture*/ 1.0f, /*UV*/ 1.0f, 1.0f, /*mvp*/ 1.0f,
+        /*Pos*/-1.5f,  0.5f, /*RGBA*/ 1.0f, 1.0f, 1.0f, 1.0f, /*texture*/ 1.0f, /*UV*/ 0.0f, 1.0f, /*mvp*/ 1.0f,
     };
 
-    /* Index buffer */
-    GLuint indices[] = {
+    /* Index buffer */ 
+    uint32_t indices[] = {
         0, 1, 2, 
-        2, 3, 0
+        2, 3, 0,
+
+        4, 5, 6, 
+        6, 7, 4,
     };
 
     VertexArray vao;
-    vao.setIndexBuffer(IndexBuffer(indices, 6));
-    vao.setVertexBuffer(VertexBuffer(vertices, 16), BufferLayout({ {"pos", GLtype::FLOAT, 2, false}, {"uv", GLtype::FLOAT, 2, false} }));
+
+    vao.setIndexBuffer(IndexBuffer(indices, 12));
+    vao.setVertexBuffer(VertexBuffer(vertices, 80), BufferLayout({
+        {GLtype::FLOAT, 2, false }, /*positions*/
+        {GLtype::FLOAT, 4, false }, /*rgba*/
+        {GLtype::FLOAT, 1, false }, /*texture slot*/
+        {GLtype::FLOAT, 2, false }, /*uv coord*/
+        {GLtype::FLOAT, 1, false }, /*mvp slot*/ }));
     vao.bind();
 
-    Shader shader(readFile("res/shaders/VertexShader.shader"), readFile("res/shaders/FragmentShader.shader"));
+    Shader shader(readFile("res/shaders/VertexShader.glsl"), readFile("res/shaders/FragmentShader.glsl"));
     shader.bind();
 
-    Texture tex("res/textures/doggo.png");
-    tex.bind();
+    //Texture tex("res/textures/doggo.png");
+    //tex.bind();
+    //
+    //shader.setUniform("uTexture", 0);
 
-    shader.setUniform("u_Texture", 0);
+    /* Camera Projection */
+    glm::mat4 proj = glm::ortho(-4.0f, 4.0f, -3.0f, 3.0f, -1.0f, 1.0f);
+    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)); // 'translate' to the right
+    
+    glm::mat4 model1 = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(-2, 0, 0)), 0.5f, glm::vec3(0, 0, 1)); // model 'transform'
+    glm::mat4 model2 = glm::translate(glm::mat4(1.0f), glm::vec3(2, 0, 0)); // model 'transform'
 
-    int loc = shader.getUniformLocation("u_Color");
-    float r = 0.0f, incr = 0.05f;
+    glm::mat4 mvp1 = proj * view * model1;
+    glm::mat4 mvp2 = proj * view * model2;
+
+    float* f = (float*)malloc(sizeof(float) * 32);
+    memcpy(f, glm::value_ptr(mvp1), 16 * sizeof(float));
+    memcpy(&f[16], glm::value_ptr(mvp2), 16 * sizeof(float));
+
+    shader.setMatrixArrayUniform<glm::mat4>("u_MVPs", f, 2);
+
+    glBindTextureUnit(1, Texture::loadTexture("res/textures/doggo.png"));
+    glBindTextureUnit(2, Texture::loadTexture("res/textures/spitoon.png"));
+
+    int textureSlots[] = { 1, 2 };
+    shader.setArrayUniform("u_Textures", textureSlots, 2);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
         /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
 
-        shader.setUniform("u_Color", r, 0.3f, 0.0f, 1.0f);
-
-        if (r > 1 || r < 0) {
-            incr *= -1;
-        }
-        r += incr;
-
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        Renderer::draw(vao, shader);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

@@ -15,6 +15,8 @@ public:
 	void bind() const;
 	void unbind() const;
 
+	uint32_t getRendererID() const { return mRendererID; }
+
 private:
 	uint32_t  mRendererID = -1;
 };
@@ -31,6 +33,8 @@ public:
 
 	void bind() const;
 	void unbind() const;
+
+	uint32_t getRendererID() const { return mRendererID; }
 
 private:
 	uint32_t mRendererID = -1;

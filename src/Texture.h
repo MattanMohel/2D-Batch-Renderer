@@ -12,7 +12,11 @@ public:
 	void bind(uint32_t slot = 0) const;
 	void unbind() const;
 
+	uint32_t getRendererID() const { return mRendererID; }
+
 	static int textureSlotCount();
+
+	static uint32_t loadTexture(const std::string& texturePath);
 
 private:
 	uint32_t mRendererID = -1;

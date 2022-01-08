@@ -1,6 +1,14 @@
 d:\repo\opengl\opengl\x64\debug\vc143.pdb
 d:\repo\opengl\opengl\x64\debug\vc143.idb
 d:\repo\opengl\opengl\x64\debug\main.obj
+d:\repo\opengl\opengl\x64\debug\attribute.obj
+d:\repo\opengl\opengl\x64\debug\buffer.obj
+d:\repo\opengl\opengl\x64\debug\vertexarray.obj
+d:\repo\opengl\opengl\x64\debug\shader.obj
+d:\repo\opengl\opengl\x64\debug\texture.obj
+d:\repo\opengl\opengl\x64\debug\stb_image.obj
+d:\repo\opengl\opengl\x64\debug\glm.obj
+d:\repo\opengl\opengl\x64\debug\renderer.obj
 d:\repo\opengl\x64\debug\opengl.exe
 d:\repo\opengl\opengl\x64\debug\opengl.ilk
 d:\repo\opengl\x64\debug\opengl.pdb

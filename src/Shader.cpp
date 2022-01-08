@@ -1,6 +1,7 @@
 #include "Shader.h"
 
 #include <GL/glew.h>
+#include <glm/gtc/type_ptr.hpp>
 
 Shader::Shader(const std::string vertexSrc, const std::string& fragmentSrc) {
     mRendererID = glCreateProgram();
@@ -33,34 +34,95 @@ void Shader::unbind() const {
 /////////////////////////////
 
 int Shader::getUniformLocation(const std::string& name) {
-    if (mUniformMap.find(name) == mUniformMap.end()) {
-        int loc = glGetUniformLocation(mRendererID, name.c_str());
-        mUniformMap[name] = loc;
-
-        return loc;
-    }
-
-    return mUniformMap[name];
+    return glGetUniformLocation(mRendererID, name.c_str());
 }
 
-template<> void Shader::setUniform(const std::string& name, float f1, float f2, float f3, float f4) {
-    glUniform4f(getUniformLocation(name), f1, f2, f3, f4);
+template<> void Shader::setUniform(const std::string& name, const glm::vec4& f4) {
+    glUniform4f(glGetUniformLocation(mRendererID, name.c_str()), f4[0], f4[1], f4[2], f4[3]);
 }
 
-template<> void Shader::setUniform(const std::string& name, float f1, float f2, float f3) {
-    glUniform3f(getUniformLocation(name), f1, f2, f3);
+template<> void Shader::setUniform(const std::string& name, const glm::vec3& f3) {
+    glUniform3f(glGetUniformLocation(mRendererID, name.c_str()), f3[0], f3[1], f3[2]);
 }
 
-template<> void Shader::setUniform(const std::string& name, float f1, float f2) {
-    glUniform2f(getUniformLocation(name), f1, f2);
+template<> void Shader::setUniform(const std::string& name, const glm::vec2& f2) {
+    glUniform2f(glGetUniformLocation(mRendererID, name.c_str()), f2[0], f2[1]);
 }
 
-template<> void Shader::setUniform(const std::string& name, float f1) {
-    glUniform1f(getUniformLocation(name), f1);
+template<> void Shader::setUniform(const std::string& name, const float& f1) {
+    glUniform1f(glGetUniformLocation(mRendererID, name.c_str()), f1);
 }
 
-template<> void Shader::setUniform(const std::string& name, int i1) {
-    glUniform1i(getUniformLocation(name), i1); 
+template<> void Shader::setUniform(const std::string& name, const glm::ivec4& i4) {
+    glUniform4i(glGetUniformLocation(mRendererID, name.c_str()), i4[0], i4[1], i4[2], i4[3]);
+}
+
+template<> void Shader::setUniform(const std::string& name, const glm::ivec3& i3) {
+    glUniform3i(glGetUniformLocation(mRendererID, name.c_str()), i3[0], i3[1], i3[2]);
+}
+
+template<> void Shader::setUniform(const std::string& name, const glm::ivec2& i2) {
+    glUniform2i(glGetUniformLocation(mRendererID, name.c_str()), i2[0], i2[1]);
+}
+
+template<> void Shader::setUniform(const std::string& name, const int& i1) {
+    glUniform1i(glGetUniformLocation(mRendererID, name.c_str()), i1);
+}
+
+template<> void Shader::setUniform(const std::string& name, const glm::mat4& mat4) {
+    glUniformMatrix4fv(glGetUniformLocation(mRendererID, name.c_str()), 1, false, glm::value_ptr(mat4));
+}
+
+template<> void Shader::setUniform(const std::string& name, const glm::mat3& mat3) {
+    glUniformMatrix3fv(glGetUniformLocation(mRendererID, name.c_str()), 1, false, glm::value_ptr(mat3));
+}
+
+template<> void Shader::setUniform(const std::string& name, const glm::mat2& mat2) {
+    glUniformMatrix2fv(glGetUniformLocation(mRendererID, name.c_str()), 1, false, glm::value_ptr(mat2));
+}
+
+template<> void Shader::setArrayUniform<float, 1>(const std::string& name, const float* floats, uint32_t count) {
+    glUniform1fv(glGetUniformLocation(mRendererID, name.c_str()), count, floats);
+}
+
+template<> void Shader::setArrayUniform<float, 2>(const std::string& name, const float* floats, uint32_t count) {
+    glUniform2fv(glGetUniformLocation(mRendererID, name.c_str()), count, floats);
+}
+
+template<> void Shader::setArrayUniform<float, 3>(const std::string& name, const float* floats, uint32_t count) {
+    glUniform3fv(glGetUniformLocation(mRendererID, name.c_str()), count, floats);
+}
+
+template<> void Shader::setArrayUniform<float, 4>(const std::string& name, const float* floats, uint32_t count) {
+    glUniform4fv(glGetUniformLocation(mRendererID, name.c_str()), count, floats);
+}
+
+template<> void Shader::setArrayUniform<int, 1>(const std::string& name, const int* ints, uint32_t count) {
+    glUniform1iv(glGetUniformLocation(mRendererID, name.c_str()), count, ints);
+}
+
+template<> void Shader::setArrayUniform<int, 2>(const std::string& name, const int* ints, uint32_t count) {
+    glUniform2iv(glGetUniformLocation(mRendererID, name.c_str()), count, ints);
+}
+
+template<> void Shader::setArrayUniform<int, 3>(const std::string& name, const int* ints, uint32_t count) {
+    glUniform3iv(glGetUniformLocation(mRendererID, name.c_str()), count, ints);
+}
+
+template<> void Shader::setArrayUniform<int, 4>(const std::string& name, const int* ints, uint32_t count) {
+    glUniform4iv(glGetUniformLocation(mRendererID, name.c_str()), count, ints);
+}
+
+template<> void Shader::setMatrixArrayUniform<glm::mat4x4>(const std::string& name, const float* mats, uint32_t count) {
+    glUniformMatrix4fv(glGetUniformLocation(mRendererID, name.c_str()), count, false, mats);
+}
+
+template<> void Shader::setMatrixArrayUniform<glm::mat3x3>(const std::string& name, const float* mats, uint32_t count) {
+    glUniformMatrix3fv(glGetUniformLocation(mRendererID, name.c_str()), count, false, mats);
+}
+
+template<> void Shader::setMatrixArrayUniform<glm::mat2x2>(const std::string& name, const float* mats, uint32_t count) {
+    glUniformMatrix2fv(glGetUniformLocation(mRendererID, name.c_str()), count, false, mats);
 }
 
 uint32_t Shader::compileShader(GLtype shaderType, const std::string& shaderSrc) {
