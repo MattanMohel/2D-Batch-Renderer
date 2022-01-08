@@ -16,7 +16,11 @@ void VertexArray::bind() const {
 	glBindVertexArray(mRendererID);
 }
 
-void VertexArray::unbind() const {
+void VertexArray::bind(uint32_t id) {
+	glBindVertexArray(id);
+}
+
+void VertexArray::unbind() {
 	glBindVertexArray(0);
 }
 
@@ -41,4 +45,11 @@ void VertexArray::setVertexBuffer(const VertexBuffer& vertexBuffer, const Buffer
 
 	glBindVertexArray(0);
 	mVertexBuffer.unbind();
+}
+
+uint32_t VertexArray::createVertexArray() {
+	uint32_t rendererID;
+	glGenVertexArrays(1, &rendererID);
+
+	return rendererID;
 }

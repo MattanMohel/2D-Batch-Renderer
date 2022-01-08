@@ -12,4 +12,7 @@ enum class GLtype {
 	VERTEX_SH = 0x8B31,
 	COMPUTE_SH = 0x91B9,
 	GEOMETRY_SH = 0x8DD9,
+
+	STATIC_DRAW = 0x88E4,
+	DYNAMIC_DRAW = 0x88E8,
 };

@@ -10,10 +10,14 @@ public:
 	~VertexArray();
 
 	void bind() const;
-	void unbind() const;
+	static void bind(uint32_t id);
+
+	static void unbind();
 
 	void setIndexBuffer(const IndexBuffer& indexBuffer);
 	void setVertexBuffer(const VertexBuffer& vertexBuffer, const BufferLayout& layout);
+
+	static uint32_t createVertexArray();
 
 private:
 	uint32_t  mRendererID = -1;

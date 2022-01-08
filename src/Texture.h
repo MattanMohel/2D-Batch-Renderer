@@ -16,7 +16,7 @@ public:
 
 	static int textureSlotCount();
 
-	static uint32_t loadTexture(const std::string& texturePath);
+	static uint32_t createTexture(const std::string& texturePath);
 
 private:
 	uint32_t mRendererID = -1;

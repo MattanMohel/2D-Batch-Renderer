@@ -49,7 +49,7 @@ int Texture::textureSlotCount() {
 	return textureSlots;
 }
 
-uint32_t Texture::loadTexture(const std::string& texturePath) {
+uint32_t Texture::createTexture(const std::string& texturePath) {
 
 	int width, height, bitsPerPixel;
 
