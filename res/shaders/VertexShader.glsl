@@ -11,7 +11,7 @@ out vec2  v_UV;
 out float v_TexSlot;
 out vec4  v_Color;
 
-uniform mat4 u_MVPs[2];
+uniform mat4 u_MVPs[256];
 
 void main() {
 	int index = int(a_MVPSlot);

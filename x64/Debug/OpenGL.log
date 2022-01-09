@@ -1,6 +1,6 @@
 ﻿  Renderer.cpp
-D:\repo\OpenGL\OpenGL\src\Renderer.cpp(98,52): warning C4244: '=': conversion from 'uint32_t' to 'float', possible loss of data
-D:\repo\OpenGL\OpenGL\src\Renderer.cpp(99,52): warning C4244: '=': conversion from 'uint32_t' to 'float', possible loss of data
-D:\repo\OpenGL\OpenGL\src\Renderer.cpp(100,52): warning C4244: '=': conversion from 'uint32_t' to 'float', possible loss of data
-D:\repo\OpenGL\OpenGL\src\Renderer.cpp(101,52): warning C4244: '=': conversion from 'uint32_t' to 'float', possible loss of data
+D:\repo\OpenGL\OpenGL\src\Renderer.cpp(114,52): warning C4244: '=': conversion from 'uint32_t' to 'float', possible loss of data
+D:\repo\OpenGL\OpenGL\src\Renderer.cpp(115,52): warning C4244: '=': conversion from 'uint32_t' to 'float', possible loss of data
+D:\repo\OpenGL\OpenGL\src\Renderer.cpp(116,52): warning C4244: '=': conversion from 'uint32_t' to 'float', possible loss of data
+D:\repo\OpenGL\OpenGL\src\Renderer.cpp(117,52): warning C4244: '=': conversion from 'uint32_t' to 'float', possible loss of data
   OpenGL.vcxproj -> D:\repo\OpenGL\x64\Debug\OpenGL.exe

@@ -7,7 +7,7 @@ in vec2  v_UV;
 in float v_TexSlot;
 in vec4  v_Color;
 
-uniform sampler2D u_Textures[2];
+uniform sampler2D u_Textures[32];
 
 void main() {
 

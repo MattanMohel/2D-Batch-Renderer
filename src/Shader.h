@@ -10,6 +10,7 @@
 class Shader {
 
 public:
+	Shader() = default;
 	Shader(const std::string vertexSrc, const std::string& fragmentSrc);
 
 	void setShader(GLtype shaderType, const std::string& shaderSrc);

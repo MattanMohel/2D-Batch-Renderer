@@ -70,11 +70,22 @@ void Renderer::init(bool initBatchBuffer) {
         mBatchVertexBuffer[i * 4 + 3] = { glm::vec2( 1.0f, -1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), (float)i, glm::vec2(1.0f, 0.0f), (float)i };
     }
 
+    glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(Vertex), (const void*)offsetof(Vertex, pos));
+    glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 4, GL_FLOAT, false, sizeof(Vertex), (const void*)offsetof(Vertex, col));
+    glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 1, GL_FLOAT, false, sizeof(Vertex), (const void*)offsetof(Vertex, tex));
+    glEnableVertexAttribArray(3);
     glVertexAttribPointer(3, 2, GL_FLOAT, false, sizeof(Vertex), (const void*)offsetof(Vertex, UVs));
+    glEnableVertexAttribArray(4);
     glVertexAttribPointer(4, 1, GL_FLOAT, false, sizeof(Vertex), (const void*)offsetof(Vertex, mvp));
+
+    VertexArray::unbind();
+}
+
+void Renderer::setShader(const Shader& shader) {
+    mShader = shader;
 }
 
 void Renderer::draw(const VertexArray& vertexArray, const Shader& shader) {
@@ -87,6 +98,11 @@ void Renderer::draw(const VertexArray& vertexArray, const Shader& shader) {
 }
 
 void Renderer::pushQuad(const glm::mat4& mvp, const glm::vec4& color, uint32_t texID) {
+    if (mBufferIndex == MAX_BATCH_QUAD_COUNT || mBufferIndex > 31) {
+        drawBatch();
+        flush();
+    }
+
     memcpy(&mMatrixArray[mBufferIndex * 16], glm::value_ptr(mvp), 16 * sizeof(float));
     mTextureArray[mBufferIndex] = texID;
     
@@ -106,15 +122,17 @@ void Renderer::pushQuad(const glm::mat4& mvp, const glm::vec4& color, uint32_t t
 }
 
 void Renderer::flush() {
+    ++mFlushCount;
     mBufferIndex = 0;
 }
 
-void Renderer::drawBatch(const Shader& shader) {
+void Renderer::drawBatch() {
     VertexArray::bind(mVertexArrayID);
-    shader.bind();
 
-    shader.setMatrixArrayUniform<glm::mat4x4>("u_MVPs", mMatrixArray, mBufferIndex);
-    shader.setArrayUniform("u_Textures", mTextureArray, mBufferIndex);
+    mShader.bind();
+
+    mShader.setMatrixArrayUniform<glm::mat4>("u_MVPs", mMatrixArray, mBufferIndex);
+    mShader.setArrayUniform("u_Textures", mTextureArray, mBufferIndex);
 
     glNamedBufferSubData(mVertexBufferID, 0, sizeof(mBatchVertexBuffer), mBatchVertexBuffer);
 

@@ -8,17 +8,21 @@
 #include "Vertex.h"
 
 #define DEBUG_GL 1
-#define MAX_BATCH_QUAD_COUNT 2
+#define MAX_BATCH_QUAD_COUNT 256
 
 class Renderer {
 
 public:
 	void init(bool initBatchBuffer = true);
 
+	void setShader(const Shader& shader);
+
 	void pushQuad(const glm::mat4& mvp, const glm::vec4& color, uint32_t texID);
 	void flush();
 
-	void drawBatch(const Shader& shader);
+	uint32_t queryFlushCount() const { return mFlushCount; }
+
+	void drawBatch();
 
 	static void draw(const VertexArray& vertexArray, const Shader& shader);
 
@@ -33,6 +37,9 @@ private:
 	float mMatrixArray[16 * MAX_BATCH_QUAD_COUNT];
 	int   mTextureArray[MAX_BATCH_QUAD_COUNT];
 
+	Shader mShader;
+
 	uint32_t mBufferIndex = 0;
+	uint32_t mFlushCount = 0;
 };
 
