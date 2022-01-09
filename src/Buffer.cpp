@@ -35,7 +35,7 @@ void VertexBuffer::unbind() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-uint32_t VertexBuffer::createVertexBuffer(const void* vertices, uint32_t count, uint32_t itemSize, GLtype drawHint) {
+uint32_t VertexBuffer::create(const void* vertices, uint32_t count, uint32_t itemSize, GLtype drawHint) {
 	uint32_t rendererID;
 
 	glGenBuffers(1, &rendererID);
@@ -83,7 +83,7 @@ void IndexBuffer::unbind() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-uint32_t IndexBuffer::createIndexBuffer(uint32_t* indices, uint32_t size, GLtype drawHint) {
+uint32_t IndexBuffer::create(uint32_t* indices, uint32_t size, GLtype drawHint) {
 	uint32_t rendererID;
 
 	glGenBuffers(1, &rendererID);

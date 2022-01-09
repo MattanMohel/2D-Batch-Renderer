@@ -42,34 +42,31 @@ void Renderer::initGLEW() {
 }
 
 void Renderer::initBatching() {
-    mVertexArrayID = VertexArray::createVertexArray();
+    mVertexArrayID = VertexArray::create();
     VertexArray::bind(mVertexArrayID);
 
-    mVertexBufferID = VertexBuffer::createVertexBuffer(nullptr, 4 * MAX_BATCH_QUAD_COUNT, sizeof(Vertex), GLtype::DYNAMIC_DRAW);
+    mVertexBufferID = VertexBuffer::create(nullptr, 4 * MAX_BATCH_QUAD_COUNT, sizeof(Vertex), GLtype::DYNAMIC_DRAW);
     VertexBuffer::bind(mVertexBufferID);
 
-    mIndexBufferID = IndexBuffer::createIndexBuffer(nullptr, 6 * MAX_BATCH_QUAD_COUNT, GLtype::DYNAMIC_DRAW);
+    mIndexBufferID = IndexBuffer::create(nullptr, 6 * MAX_BATCH_QUAD_COUNT, GLtype::DYNAMIC_DRAW);
     IndexBuffer::bind(mIndexBufferID);
 
-    for (int i = 0; i < (MAX_BATCH_QUAD_COUNT); ++i) {
+    for (int i = 0; i < MAX_BATCH_QUAD_COUNT; ++i) {
+        // Index Buffer
         mBatchIndexBuffer[i * 6 + 0] = i * 4 + 0;
         mBatchIndexBuffer[i * 6 + 1] = i * 4 + 1;
         mBatchIndexBuffer[i * 6 + 2] = i * 4 + 2;
         mBatchIndexBuffer[i * 6 + 3] = i * 4 + 2;
         mBatchIndexBuffer[i * 6 + 4] = i * 4 + 3;
         mBatchIndexBuffer[i * 6 + 5] = i * 4 + 0;
-    }
-
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(mBatchIndexBuffer), mBatchIndexBuffer, GL_DYNAMIC_DRAW);
-
-    // init vertex buffer
-    for (int i = 0; i < (MAX_BATCH_QUAD_COUNT); ++i) {
-        /*pos, rgba, tex, uvs, mvp*/
+        // Vertex Buffer
         mBatchVertexBuffer[i * 4 + 0] = { glm::vec2(-1.0f, -1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), (float)i, glm::vec2(0.0f, 0.0f), (float)i };
         mBatchVertexBuffer[i * 4 + 1] = { glm::vec2(-1.0f,  1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), (float)i, glm::vec2(0.0f, 1.0f), (float)i };
         mBatchVertexBuffer[i * 4 + 2] = { glm::vec2(1.0f,  1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), (float)i, glm::vec2(1.0f, 1.0f), (float)i };
         mBatchVertexBuffer[i * 4 + 3] = { glm::vec2(1.0f, -1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), (float)i, glm::vec2(1.0f, 0.0f), (float)i };
     }
+
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(mBatchIndexBuffer), mBatchIndexBuffer, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(Vertex), (const void*)offsetof(Vertex, pos));
@@ -141,5 +138,5 @@ void Renderer::draw(const VertexArray& vertexArray, const Shader& shader) {
 
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 }

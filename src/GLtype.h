@@ -1,6 +1,6 @@
 #pragma once
 
-// Contained defenitions for OpenGL type values
+// Contained definitions for OpenGL type values
 enum class GLtype {
 	BYTE = 0x1400,
 	BOOL = 0x8B56,

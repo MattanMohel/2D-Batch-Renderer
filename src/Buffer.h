@@ -19,7 +19,7 @@ public:
 
 	static void unbind();	
 	
-	static uint32_t createVertexBuffer(const void* vertices, uint32_t count, uint32_t itemSize, GLtype drawHint);
+	static uint32_t create(const void* vertices, uint32_t count, uint32_t itemSize, GLtype drawHint);
 
 private:
 	uint32_t  mRendererID = -1;
@@ -40,7 +40,7 @@ public:
 
 	static void unbind();
 
-	static uint32_t createIndexBuffer(uint32_t* indices, uint32_t size, GLtype drawHint);
+	static uint32_t create(uint32_t* indices, uint32_t size, GLtype drawHint);
 
 private:
 	uint32_t mRendererID = -1;

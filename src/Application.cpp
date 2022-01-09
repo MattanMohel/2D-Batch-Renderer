@@ -121,7 +121,7 @@ void Application::run() {
     renderer.setShader(shader);
 
     ///* Camera Projection */
-    glm::mat4 proj = glm::ortho(-32.0f, 32.0f, -18.0f, 18.0f, -1.0f, 1.0f);
+    glm::mat4 proj = glm::ortho(-64.0f, 64.0f, -36.0f, 36.0f, -1.0f, 1.0f);
     glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)); // 'translate' to the right
     
     glm::mat4 model1 = glm::translate(glm::mat4(1.0f), glm::vec3(-2, 0, 0)); // model 'transform'
@@ -138,9 +138,15 @@ void Application::run() {
     float r = 0.0f;
     float incr = 0.01f;
 
+    glfwSetTime(0.0);
+
+    double curTime = 1, prevTime = 1;
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(mWindow)) {
         /* Render here */
+
+        curTime = glfwGetTime();
 
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -151,9 +157,9 @@ void Application::run() {
 
         r += incr;
 
-        for (float i = 0; i < 64; i++) {
-            for (float j = 0; j < 36; j++) {
-                glm::mat4 mvp = proj * view * glm::translate(glm::mat4(1.0f), glm::vec3(i - 32, j - 18, 0));
+        for (float i = 0; i < 512; i++) {
+            for (float j = 0; j < 72; j++) {
+                glm::mat4 mvp = proj * view * glm::translate(glm::mat4(1.0f), glm::vec3(r * (float)(i - 256)/4, j - 36, 0));
                 renderer.pushQuad(glm::mat4(mvp), glm::vec4(r, 1.0f, 1.0f, 1.0f), tex1);
             }
         }
@@ -166,6 +172,10 @@ void Application::run() {
 
         /* Poll for and process events */
         glfwPollEvents();
+
+        printf("fps: %f\n", 1.0 / (curTime - prevTime));
+
+        prevTime = curTime;
 
 #if DEBUG_GL
         printf("draw calls: %d\n", renderer.queryFlushCount());

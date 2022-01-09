@@ -17,7 +17,7 @@ public:
 	void setIndexBuffer(const IndexBuffer& indexBuffer);
 	void setVertexBuffer(const VertexBuffer& vertexBuffer, const BufferLayout& layout);
 
-	static uint32_t createVertexArray();
+	static uint32_t create();
 
 private:
 	uint32_t  mRendererID = -1;
