@@ -22,7 +22,9 @@
 
 int main() {
 
+    Application::initGLFW();
+
     Application app;
-    app.init("OpenGL", 960, 540);
+    app.initWindow("OpenGL", 960, 540);
     app.run();
 }

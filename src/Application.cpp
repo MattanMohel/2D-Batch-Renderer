@@ -22,7 +22,7 @@ static std::string readFile(const std::string& path) {
     return source;
 }
 
-void Application::init(std::string windowName, int width, int height) {
+void Application::initGLFW() {
     if (!glfwInit()) {
         //ASSERT
     }
@@ -34,7 +34,9 @@ void Application::init(std::string windowName, int width, int height) {
 #if DEBUG_GL
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 #endif
+}
 
+void Application::initWindow(std::string windowName, int width, int height) {
     mWindow = glfwCreateWindow(width, height, windowName.c_str(), NULL, NULL);
 
     if (!mWindow) {
@@ -108,8 +110,10 @@ void Application::run() {
 #endif
 
 #if 1
+    Renderer::initGLEW();
+
     Renderer renderer;
-    renderer.init();
+    renderer.initBatching();
 
     Shader shader(readFile("res/shaders/VertexShader.glsl"), readFile("res/shaders/FragmentShader.glsl"));
     shader.bind();
@@ -148,11 +152,14 @@ void Application::run() {
         r += incr;
 
         for (float i = 0; i < 64; i++) {
-            glm::mat4 mvp = proj * view * glm::translate(glm::mat4(1.0f), glm::vec3(i - 32, 0, 0));
-            renderer.pushQuad(glm::mat4(mvp), glm::vec4(r, 1.0f, 1.0f, 1.0f), tex1);
+            for (float j = 0; j < 36; j++) {
+                glm::mat4 mvp = proj * view * glm::translate(glm::mat4(1.0f), glm::vec3(i - 32, j - 18, 0));
+                renderer.pushQuad(glm::mat4(mvp), glm::vec4(r, 1.0f, 1.0f, 1.0f), tex1);
+            }
         }
 
         renderer.drawBatch();
+        renderer.flush();
 
         /* Swap front and back buffers */
         glfwSwapBuffers(mWindow);
@@ -160,7 +167,9 @@ void Application::run() {
         /* Poll for and process events */
         glfwPollEvents();
 
+#if DEBUG_GL
         printf("draw calls: %d\n", renderer.queryFlushCount());
+#endif
     }
 
     glfwTerminate();

@@ -7,20 +7,22 @@
 #include "Texture.h"
 #include "Vertex.h"
 
-#define DEBUG_GL 1
+#define DEBUG_GL 0
 #define MAX_BATCH_QUAD_COUNT 256
 
 class Renderer {
 
 public:
-	void init(bool initBatchBuffer = true);
+	static void initGLEW();
 
-	void setShader(const Shader& shader);
+	void initBatching();
+
+	void setShader(const Shader& shader) { mShader = shader; };
 
 	void pushQuad(const glm::mat4& mvp, const glm::vec4& color, uint32_t texID);
 	void flush();
 
-	uint32_t queryFlushCount() { uint32_t flushCount = mFlushCount; mFlushCount = 0; return flushCount; }
+	uint32_t queryFlushCount();
 
 	void drawBatch();
 
@@ -42,5 +44,7 @@ private:
 	uint32_t mBufferIndex = 0;
 	uint32_t mTextureIndex = 0;
 	uint32_t mFlushCount = 0;
+
+	static uint32_t maxTextureSlots;
 };
 

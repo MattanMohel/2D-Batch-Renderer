@@ -39,11 +39,7 @@ void Texture::unbind() const {
 }
 
 int Texture::textureSlotCount() {
-	static int textureSlots = -1;
-
-	if (textureSlots != -1) {
-		return textureSlots;
-	}
+	int textureSlots;
 
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &textureSlots);
 	return textureSlots;

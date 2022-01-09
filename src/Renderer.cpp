@@ -20,14 +20,17 @@ static void glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severi
     }
 }
 
-void Renderer::init(bool initBatchBuffer) {
+uint32_t Renderer::maxTextureSlots = 0;
+
+void Renderer::initGLEW() {
     if (glewInit() != GLEW_OK) {
         //ASSERT
     }
 
+    maxTextureSlots = Texture::textureSlotCount();
+
 #if DEBUG_GL
     printf("%s\n", glGetString(GL_VERSION));
-    printf("%d texture slots\n", Texture::textureSlotCount());
 
     glDebugMessageCallback(glDebugCallback, nullptr);
 #endif
@@ -36,11 +39,9 @@ void Renderer::init(bool initBatchBuffer) {
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
+}
 
-    if (!initBatchBuffer) {
-        return;
-    }
-
+void Renderer::initBatching() {
     mVertexArrayID = VertexArray::createVertexArray();
     VertexArray::bind(mVertexArrayID);
 
@@ -58,7 +59,7 @@ void Renderer::init(bool initBatchBuffer) {
         mBatchIndexBuffer[i * 6 + 4] = i * 4 + 3;
         mBatchIndexBuffer[i * 6 + 5] = i * 4 + 0;
     }
-    
+
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(mBatchIndexBuffer), mBatchIndexBuffer, GL_DYNAMIC_DRAW);
 
     // init vertex buffer
@@ -66,8 +67,8 @@ void Renderer::init(bool initBatchBuffer) {
         /*pos, rgba, tex, uvs, mvp*/
         mBatchVertexBuffer[i * 4 + 0] = { glm::vec2(-1.0f, -1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), (float)i, glm::vec2(0.0f, 0.0f), (float)i };
         mBatchVertexBuffer[i * 4 + 1] = { glm::vec2(-1.0f,  1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), (float)i, glm::vec2(0.0f, 1.0f), (float)i };
-        mBatchVertexBuffer[i * 4 + 2] = { glm::vec2( 1.0f,  1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), (float)i, glm::vec2(1.0f, 1.0f), (float)i };
-        mBatchVertexBuffer[i * 4 + 3] = { glm::vec2( 1.0f, -1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), (float)i, glm::vec2(1.0f, 0.0f), (float)i };
+        mBatchVertexBuffer[i * 4 + 2] = { glm::vec2(1.0f,  1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), (float)i, glm::vec2(1.0f, 1.0f), (float)i };
+        mBatchVertexBuffer[i * 4 + 3] = { glm::vec2(1.0f, -1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), (float)i, glm::vec2(1.0f, 0.0f), (float)i };
     }
 
     glEnableVertexAttribArray(0);
@@ -84,22 +85,10 @@ void Renderer::init(bool initBatchBuffer) {
     VertexArray::unbind();
 }
 
-void Renderer::setShader(const Shader& shader) {
-    mShader = shader;
-}
-
-void Renderer::draw(const VertexArray& vertexArray, const Shader& shader) {
-    vertexArray.bind();
-    shader.bind();
-
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, nullptr);
-}
-
 void Renderer::pushQuad(const glm::mat4& mvp, const glm::vec4& color, uint32_t texID) {
-    if (mBufferIndex == MAX_BATCH_QUAD_COUNT || mTextureIndex > 31) {
+    if (mBufferIndex == MAX_BATCH_QUAD_COUNT || mTextureIndex >= maxTextureSlots) {
         drawBatch();
+        flush();
     }
 
     if (texID > mTextureIndex) {
@@ -128,6 +117,11 @@ void Renderer::flush() {
     mBufferIndex = 0;
 }
 
+uint32_t Renderer::queryFlushCount() { 
+    uint32_t flushCount = mFlushCount; 
+    mFlushCount = 0; return flushCount; 
+}
+
 void Renderer::drawBatch() {
     VertexArray::bind(mVertexArrayID);
 
@@ -139,6 +133,13 @@ void Renderer::drawBatch() {
     glNamedBufferSubData(mVertexBufferID, 0, sizeof(mBatchVertexBuffer), mBatchVertexBuffer);
 
     glDrawElements(GL_TRIANGLES, 6 * mBufferIndex, GL_UNSIGNED_INT, nullptr);
+}
 
-    flush();
+void Renderer::draw(const VertexArray& vertexArray, const Shader& shader) {
+    vertexArray.bind();
+    shader.bind();
+
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, nullptr);
 }

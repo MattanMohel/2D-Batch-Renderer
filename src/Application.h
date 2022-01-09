@@ -9,7 +9,8 @@
 class Application {
 
 public:
-	void init(std::string windowName, int width, int height);
+	static void initGLFW();
+	void initWindow(std::string windowName, int width, int height);
 
 	GLFWwindow* getWindow() { return mWindow; }
 
