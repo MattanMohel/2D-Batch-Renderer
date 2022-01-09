@@ -138,6 +138,8 @@ void Application::run() {
     while (!glfwWindowShouldClose(mWindow)) {
         /* Render here */
 
+        glClear(GL_COLOR_BUFFER_BIT);
+
         if (r >= 1 || r <= 0) {
             r = r >= 1? 1.0f : 0.0f;
             incr *= -1;
@@ -145,21 +147,20 @@ void Application::run() {
 
         r += incr;
 
-        for (float i = 0; i < 32; i++) {
-            for (float j = 0; j < 1; ++j) {
-                glm::mat4 mvp = proj * view * glm::translate(glm::mat4(1.0f), glm::vec3(8 - i / 2, 8 - i / 2, 0));
-                renderer.pushQuad(glm::mat4(mvp), glm::vec4(r, 1.0f, 1.0f, 1.0f), tex1);
-            }
+        for (float i = 0; i < 64; i++) {
+            glm::mat4 mvp = proj * view * glm::translate(glm::mat4(1.0f), glm::vec3(i - 32, 0, 0));
+            renderer.pushQuad(glm::mat4(mvp), glm::vec4(r, 1.0f, 1.0f, 1.0f), tex1);
         }
 
         renderer.drawBatch();
-        renderer.flush();
 
         /* Swap front and back buffers */
         glfwSwapBuffers(mWindow);
 
         /* Poll for and process events */
         glfwPollEvents();
+
+        printf("draw calls: %d\n", renderer.queryFlushCount());
     }
 
     glfwTerminate();

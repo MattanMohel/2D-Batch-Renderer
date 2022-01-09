@@ -20,7 +20,7 @@ public:
 	void pushQuad(const glm::mat4& mvp, const glm::vec4& color, uint32_t texID);
 	void flush();
 
-	uint32_t queryFlushCount() const { return mFlushCount; }
+	uint32_t queryFlushCount() { uint32_t flushCount = mFlushCount; mFlushCount = 0; return flushCount; }
 
 	void drawBatch();
 
@@ -40,6 +40,7 @@ private:
 	Shader mShader;
 
 	uint32_t mBufferIndex = 0;
+	uint32_t mTextureIndex = 0;
 	uint32_t mFlushCount = 0;
 };
 

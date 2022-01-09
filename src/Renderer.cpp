@@ -98,31 +98,33 @@ void Renderer::draw(const VertexArray& vertexArray, const Shader& shader) {
 }
 
 void Renderer::pushQuad(const glm::mat4& mvp, const glm::vec4& color, uint32_t texID) {
-    if (mBufferIndex == MAX_BATCH_QUAD_COUNT || mBufferIndex > 31) {
+    if (mBufferIndex == MAX_BATCH_QUAD_COUNT || mTextureIndex > 31) {
         drawBatch();
-        flush();
+    }
+
+    if (texID > mTextureIndex) {
+        glBindTextureUnit(mTextureIndex + 1, texID);
+        mTextureArray[mTextureIndex] = texID;
+        ++mTextureIndex;
     }
 
     memcpy(&mMatrixArray[mBufferIndex * 16], glm::value_ptr(mvp), 16 * sizeof(float));
-    mTextureArray[mBufferIndex] = texID;
     
     mBatchVertexBuffer[mBufferIndex * 4 + 0].col = color;
     mBatchVertexBuffer[mBufferIndex * 4 + 1].col = color;
     mBatchVertexBuffer[mBufferIndex * 4 + 2].col = color;
     mBatchVertexBuffer[mBufferIndex * 4 + 3].col = color;    
     
-    mBatchVertexBuffer[mBufferIndex * 4 + 0].tex = mBufferIndex;
-    mBatchVertexBuffer[mBufferIndex * 4 + 1].tex = mBufferIndex;
-    mBatchVertexBuffer[mBufferIndex * 4 + 2].tex = mBufferIndex;
-    mBatchVertexBuffer[mBufferIndex * 4 + 3].tex = mBufferIndex;
-
-    glBindTextureUnit(mBufferIndex + 1, texID);
-
+    mBatchVertexBuffer[mBufferIndex * 4 + 0].tex = mTextureIndex - 1;
+    mBatchVertexBuffer[mBufferIndex * 4 + 1].tex = mTextureIndex - 1;
+    mBatchVertexBuffer[mBufferIndex * 4 + 2].tex = mTextureIndex - 1;
+    mBatchVertexBuffer[mBufferIndex * 4 + 3].tex = mTextureIndex - 1;
     ++mBufferIndex;
 }
 
 void Renderer::flush() {
     ++mFlushCount;
+    mTextureIndex = 0;
     mBufferIndex = 0;
 }
 
@@ -132,11 +134,11 @@ void Renderer::drawBatch() {
     mShader.bind();
 
     mShader.setMatrixArrayUniform<glm::mat4>("u_MVPs", mMatrixArray, mBufferIndex);
-    mShader.setArrayUniform("u_Textures", mTextureArray, mBufferIndex);
+    mShader.setArrayUniform("u_Textures", mTextureArray, mTextureIndex);
 
     glNamedBufferSubData(mVertexBufferID, 0, sizeof(mBatchVertexBuffer), mBatchVertexBuffer);
 
-    glClear(GL_COLOR_BUFFER_BIT);
-
     glDrawElements(GL_TRIANGLES, 6 * mBufferIndex, GL_UNSIGNED_INT, nullptr);
+
+    flush();
 }
