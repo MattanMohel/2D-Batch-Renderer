@@ -17,7 +17,7 @@ void main() {
 // p v m pos
 
 
-	gl_Position = u_VP * a_Position;
+	gl_Position = a_Position * u_VP;
 	
 	v_UV       = a_UV;
 	v_TexSlot  = a_TexSlot;

@@ -9,6 +9,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 #include "Transform.h"
 
 #include "Renderer.h"
@@ -54,70 +58,19 @@ void Application::initWindow(std::string windowName, int width, int height) {
 
 void Application::run() {
 
-#if 0
-    Renderer renderer;
-    renderer.init(false);
-
-    /* Vertex buffer */
-    float vertices[] = {
-        /*Pos*/-1.0f, -1.0f, /*RGBA*/ 1.0f, 1.0f, 1.0f, 1.0f, /*texture*/ 0.0f, /*UV*/ 0.0f, 0.0f, /*mvp*/ 0.0f,
-        /*Pos*/-1.0f,  1.0f, /*RGBA*/ 1.0f, 1.0f, 1.0f, 1.0f, /*texture*/ 0.0f, /*UV*/ 0.0f, 1.0f, /*mvp*/ 0.0f,
-        /*Pos*/ 1.0f,  1.0f, /*RGBA*/ 1.0f, 1.0f, 1.0f, 1.0f, /*texture*/ 0.0f, /*UV*/ 1.0f, 1.0f, /*mvp*/ 0.0f,
-        /*Pos*/ 1.0f, -1.0f, /*RGBA*/ 1.0f, 1.0f, 1.0f, 1.0f, /*texture*/ 0.0f, /*UV*/ 1.0f, 0.0f, /*mvp*/ 0.0f,
-    };
-
-    /* Index buffer */
-    uint32_t indices[] = {
-        0, 1, 2,
-        2, 3, 0,
-
-        4, 5, 6,
-        6, 7, 4,
-    };
-
-    Shader shader(readFile("res/shaders/VertexShader.glsl"), readFile("res/shaders/FragmentShader.glsl"));
-    shader.bind();
-
-    VertexArray vao;
-
-    vao.setIndexBuffer(IndexBuffer(indices, ARR_SZ(indices)));
-    vao.setVertexBuffer(VertexBuffer(vertices, ARR_SZ(vertices)), BufferLayout({
-        {GLtype::FLOAT, 2, false }, /*positions*/
-        {GLtype::FLOAT, 4, false }, /*rgba*/
-        {GLtype::FLOAT, 1, false }, /*texture slot*/
-        {GLtype::FLOAT, 2, false }, /*uv coord*/
-        {GLtype::FLOAT, 1, false }, /*mvp slot*/ }));
-    vao.bind();
-
-    /* Camera Projection */
-    glm::mat4 proj = glm::ortho(-8.0f, 8.0f, -4.5f, 4.5f, -1.0f, 1.0f);
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)); // 'translate' to the right
-
-    glm::mat4 model1 = glm::translate(glm::mat4(1.0f), glm::vec3(-2, 0, 0)); // model 'transform'
-    glm::mat4 model2 = glm::translate(glm::mat4(1.0f), glm::vec3(2, 0, 0)); // model 'transform'
-
-    glm::mat4 mvp1 = proj * view * model1;
-    glm::mat4 mvp2 = proj * view * model2;
-
-    float f[32];
-    memcpy(&f[0], glm::value_ptr(mvp1), 16 * sizeof(float));
-    memcpy(&f[16], glm::value_ptr(mvp2), 16 * sizeof(float));
-
-    shader.setMatrixArrayUniform<glm::mat4>("u_MVPs", f, 2);
-
-    glBindTextureUnit(1, Texture::createTexture("res/textures/doggo.png"));
-    glBindTextureUnit(2, Texture::createTexture("res/textures/spitoon.png"));
-
-    int textureSlots[] = { 1, 2 };
-    shader.setArrayUniform("u_Textures", textureSlots, 2);
-#endif
-
     Pipeline::init();
+
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(mWindow, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
 
     Shader shader(readFile("res/shaders/VertexShader.glsl"), readFile("res/shaders/FragmentShader.glsl"));
     shader.bind();
 
     Camera camera;
+    camera.updateViewProjection();
 
     Renderer2D renderer;
     renderer.init(&camera, shader);
@@ -130,43 +83,35 @@ void Application::run() {
     uint32_t tex1 = Texture::createTexture("res/textures/doggo.png");
     uint32_t tex2 = Texture::createTexture("res/textures/spitoon.png");
 
-
-    float r = 0.0f;
-    float incr = 0.01f;
-
     glfwSetTime(0.0);
 
     double curTime = 1, prevTime = 1;
 
     Transform trans;
 
-    /* Loop until the user closes the window */
+    glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+
     while (!glfwWindowShouldClose(mWindow)) {
-        /* Render here */
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::DragFloat2("transform", glm::value_ptr(trans.position()), 0.1f, -10.0f, 10.0f);
+        ImGui::ColorPicker4("color", glm::value_ptr(color));
 
         curTime = glfwGetTime();
 
-        /*for (int i = -16; i < 16; ++i) {
-            for (int j = -9; j < 9; ++j) {
-                trans.position() = {(float)i, (float)j};
-                renderer.pushQuad(trans.modelMatrix(), glm::vec4(r, 1.0f, 1.0f, 1.0f), tex1);
-            }
-        }*/
-
-        renderer.pushQuad(trans.modelMatrix(), glm::vec4(r, 1.0f, 1.0f, 1.0f), tex1);
+        renderer.pushQuad(trans.modelMatrix(), color, tex1);
 
         Pipeline::endFrame();
-
-        if (r >= 1 || r <= 0) {
-            r = r >= 1? 1.0f : 0.0f;
-            incr *= -1;
-        }
-
-        r += incr;
 
 
         renderer.drawBatch();
         renderer.flush();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         /* Swap front and back buffers */
         glfwSwapBuffers(mWindow);
@@ -179,9 +124,16 @@ void Application::run() {
         prevTime = curTime;
 
         printf("draw calls: %d\n", Pipeline::getdrawCalls());
+
+
 #if DEBUG_GL
 #endif
     }
 
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    glfwDestroyWindow(mWindow);
     glfwTerminate();
 }
