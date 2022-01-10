@@ -2,94 +2,93 @@
 
 #include <GL/glew.h>
 
-///////////////////////
-/////Vertex Buffer/////
-///////////////////////
+namespace vertexBuffer {
 
-VertexBuffer::VertexBuffer(float* vertices, uint32_t size) {
-	glGenBuffers(1, &mRendererID);
-	glBindBuffer(GL_ARRAY_BUFFER, mRendererID);
-	glBufferData(GL_ARRAY_BUFFER, size * sizeof(float), vertices, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	uint32_t create() {
+		uint32_t id;
+		glGenBuffers(1, &id);
+		glBindBuffer(GL_ARRAY_BUFFER, id);
+
+		return id;
+	}
+
+	void destroy(uint32_t id) {
+		glDeleteBuffers(1, &id);
+	}
+
+	void setBuffer(const void* vertices, uint32_t count, 
+		uint32_t size, gl::type drawHint) {
+
+		glBufferData(GL_ARRAY_BUFFER, count * size, vertices, (int)drawHint);
+	}
+
+	void bind(uint32_t id) {
+		glBindBuffer(GL_ARRAY_BUFFER, id);
+	}
+
+	void unbind() {
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
 }
 
-VertexBuffer::~VertexBuffer() {
-	glDeleteBuffers(1, &mRendererID);
+namespace attributes {
+
+	size_t create(uint32_t index, int count, size_t stride, size_t offset,
+		gl::type type, bool normalized) {
+
+		glEnableVertexAttribArray(index);
+		glVertexAttribPointer(index, count, (int)type, normalized, stride, (const void*)offset);
+
+		return offset + count * gl::size(type);
+	}
 }
 
-void VertexBuffer::setBuffer(float* vertices, uint32_t size) {
-	glBindBuffer(GL_ARRAY_BUFFER, mRendererID);
-	glBufferData(GL_ARRAY_BUFFER, size * sizeof(float), vertices, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+namespace indexBuffer {
+
+	uint32_t create() {
+		uint32_t id;
+		glGenBuffers(1, &id);
+
+		return id;
+	}
+
+	void destroy(uint32_t id) {
+		glDeleteBuffers(1, &id);
+	}
+
+	void setBuffer(const void* indices, uint32_t count, 
+		uint32_t size, gl::type drawHint) {
+
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * size, indices, (int)drawHint);
+	}
+
+	void bind(uint32_t id) {
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
+	}
+
+	void unbind() {
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
 }
 
-void VertexBuffer::bind() const {
-	glBindBuffer(GL_ARRAY_BUFFER, mRendererID);
-}
+namespace vertexArray {
 
-void VertexBuffer::bind(uint32_t id) {
-	glBindBuffer(GL_ARRAY_BUFFER, id);
-}
+	uint32_t create() {
+		uint32_t id;
+		glGenVertexArrays(1, &id);
 
-void VertexBuffer::unbind() {
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
+		return id;
+	}
 
-uint32_t VertexBuffer::create(const void* vertices, uint32_t count, uint32_t itemSize, GLtype drawHint) {
-	uint32_t rendererID;
+	void destroy(uint32_t id) {
+		glDeleteVertexArrays(1, &id);
+	}
 
-	glGenBuffers(1, &rendererID);
-	glBindBuffer(GL_ARRAY_BUFFER, rendererID);
-	glBufferData(GL_ARRAY_BUFFER, count * itemSize, vertices, (uint32_t)drawHint);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	void bind(uint32_t id) {
+		glBindVertexArray(id);
+	}
 
-	return rendererID;
-}
-
-//////////////////////
-/////Index Buffer/////
-//////////////////////
-
-IndexBuffer::IndexBuffer(uint32_t* indices, uint32_t size) 
-	: mIndexCount(size) {
-
-	glGenBuffers(1, &mRendererID);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mRendererID);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, size * sizeof(uint32_t), indices, GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-}
-
-IndexBuffer::~IndexBuffer() {
-	glDeleteBuffers(1, &mRendererID);
-}
-
-void IndexBuffer::setBuffer(uint32_t* indices, uint32_t size) {
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mRendererID);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, size * sizeof(uint32_t), indices, GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	mIndexCount = size;
-}
-
-void IndexBuffer::bind() const {
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mRendererID);
-}
-
-void IndexBuffer::bind(uint32_t id) {
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
-}
-
-void IndexBuffer::unbind() {
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-}
-
-uint32_t IndexBuffer::create(uint32_t* indices, uint32_t size, GLtype drawHint) {
-	uint32_t rendererID;
-
-	glGenBuffers(1, &rendererID);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rendererID);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, size * sizeof(uint32_t), indices, (uint32_t)drawHint);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	return rendererID;
+	void unbind() {
+		glBindVertexArray(0);
+	}
 }

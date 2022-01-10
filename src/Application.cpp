@@ -80,8 +80,11 @@ void Application::run() {
     
     camera.updateViewProjection();
 
-    uint32_t tex1 = Texture::createTexture("res/textures/doggo.png");
-    uint32_t tex2 = Texture::createTexture("res/textures/spitoon.png");
+    uint32_t tex1 = texture::create("res/textures/doggo.png");
+    texture::bind(tex1);
+
+    uint32_t tex2 = texture::create("res/textures/spitoon.png");
+    texture::bind(tex2);
 
     glfwSetTime(0.0);
 
@@ -119,15 +122,12 @@ void Application::run() {
         /* Poll for and process events */
         glfwPollEvents();
 
+#if DEBUG_GL
         printf("fps: %f\n", 1.0 / (curTime - prevTime));
+        printf("draw calls: %d\n", Pipeline::getdrawCalls());
+#endif
 
         prevTime = curTime;
-
-        printf("draw calls: %d\n", Pipeline::getdrawCalls());
-
-
-#if DEBUG_GL
-#endif
     }
 
     ImGui_ImplOpenGL3_Shutdown();

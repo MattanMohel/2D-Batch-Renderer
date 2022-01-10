@@ -1,49 +1,40 @@
 #pragma once
 
-#include <cstdint>
+#include <vector>
 #include "GLtype.h"
-#include "Vertex.h"
 
-class VertexBuffer {
+namespace vertexBuffer {
+	uint32_t create();
+	void destroy(uint32_t id);
 
-public:
-	VertexBuffer() = default;
+	void setBuffer(const void* vertices, uint32_t count, 
+		uint32_t size, gl::type drawHint = gl::type::STATIC_DRAW);
 
-	VertexBuffer(float* vertices, uint32_t size);
-	~VertexBuffer();
+	void bind(uint32_t id);
+	void unbind();
+}
 
-	void setBuffer(float* vertices, uint32_t size);
+namespace attributes {
+	// returns offset for next attribute
+	size_t create(uint32_t index, int count, size_t stride, size_t offset, 
+		gl::type type = gl::type::FLOAT, bool normalized = false);
+}
 
-	void bind() const;
-	static void bind(uint32_t id);
+namespace indexBuffer {
+	uint32_t create();
+	void destroy(uint32_t id);
 
-	static void unbind();	
-	
-	static uint32_t create(const void* vertices, uint32_t count, uint32_t itemSize, GLtype drawHint);
+	void setBuffer(const void* indices, uint32_t count, 
+		uint32_t size, gl::type drawHint = gl::type::STATIC_DRAW);
 
-private:
-	uint32_t  mRendererID = -1;
-};
+	void bind(uint32_t id);
+	void unbind();
+}
 
-class IndexBuffer {
+namespace vertexArray {
+	uint32_t create();
+	void destroy(uint32_t id);
 
-public:
-	IndexBuffer() = default;
-
-	IndexBuffer(uint32_t* indices, uint32_t size);
-	~IndexBuffer();
-
-	void setBuffer(uint32_t* indices, uint32_t size);
-
-	void bind() const;
-	static void bind(uint32_t id);
-
-	static void unbind();
-
-	static uint32_t create(uint32_t* indices, uint32_t size, GLtype drawHint);
-
-private:
-	uint32_t mRendererID = -1;
-	uint32_t mIndexCount;
-};
-
+	void bind(uint32_t id);
+	void unbind();
+}

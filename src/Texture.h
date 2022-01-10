@@ -1,26 +1,12 @@
 #pragma once
 
-#include <cstdint>
 #include <string>
 
-class Texture {
+namespace texture {
+	uint32_t create(const std::string& path);
+	void destroy(uint32_t id);
 
-public:
-	Texture(const std::string& texturePath);
-	~Texture();
-
-	void bind(uint32_t slot = 0) const;
-	void unbind() const;
-
-	uint32_t getRendererID() const { return mRendererID; }
-
-	static uint32_t createTexture(const std::string& texturePath);
-
-private:
-	uint32_t mRendererID = -1;
-
-	std::string mFilePath;
-	unsigned char* mBuffer = nullptr;
-	int mWidth = 0, mHeight = 0, mBitsPerPixel = 0;
-};
+	void bind(uint32_t id, uint32_t slot = 1);
+	void unbind(uint32_t slot = 1);
+}
 

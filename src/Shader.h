@@ -13,7 +13,7 @@ public:
 	Shader() = default;
 	Shader(const std::string vertexSrc, const std::string& fragmentSrc);
 
-	void setShader(GLtype shaderType, const std::string& shaderSrc);
+	void setShader(gl::type shaderType, const std::string& shaderSrc);
 
 	void bind() const;
 	void unbind() const;
@@ -60,7 +60,7 @@ public:
 	template<> void setMatrixArrayUniform<glm::mat3x3>(const std::string& name, const float* mats, uint32_t count) const;
 	template<> void setMatrixArrayUniform<glm::mat2x2>(const std::string& name, const float* mats, uint32_t count) const;
 
-	static uint32_t compileShader(GLtype shaderType, const std::string& shaderSrc);
+	static uint32_t compileShader(gl::type shaderType, const std::string& shaderSrc);
 
 private:
 	uint32_t mRendererID = -1;

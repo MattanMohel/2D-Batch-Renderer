@@ -1,7 +1,5 @@
 #include "Renderer.h"
 
-#include <iostream>
-
 #include <GL/glew.h>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -63,12 +61,15 @@ void Renderer2D::init(Camera* camera, const Shader& shader) {
     m_Camera = camera;
     m_Shader = shader;
 
-    m_Vao = VertexArray::create();
-    VertexArray::bind(m_Vao);
-    m_Vbo = VertexBuffer::create(nullptr, 4 * MAX_BATCH_QUAD_COUNT, sizeof(Vertex), GLtype::DYNAMIC_DRAW);
-    VertexBuffer::bind(m_Vbo);
-    m_Ibo = IndexBuffer::create(nullptr, 6 * MAX_BATCH_QUAD_COUNT, GLtype::DYNAMIC_DRAW);
-    IndexBuffer::bind(m_Ibo);
+    m_Vao = vertexArray::create();
+    vertexArray::bind(m_Vao);
+
+    m_Vbo = vertexBuffer::create();
+    vertexBuffer::bind(m_Vbo);
+    vertexBuffer::setBuffer(nullptr, 4 * MAX_BATCH_QUAD_COUNT, sizeof(data::Vertex), gl::type::DYNAMIC_DRAW);
+
+    m_Ibo = indexBuffer::create();
+    indexBuffer::bind(m_Ibo);
 
     for (uint32_t i = 0; i < MAX_BATCH_QUAD_COUNT; ++i) {
         // Index Buffer
@@ -80,18 +81,14 @@ void Renderer2D::init(Camera* camera, const Shader& shader) {
         m_Indices[i * 6 + 5] = i * 4 + 0;
     }
 
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(m_Indices), m_Indices, GL_DYNAMIC_DRAW);
+    indexBuffer::setBuffer(m_Indices, 6 * MAX_BATCH_QUAD_COUNT, sizeof(uint32_t), gl::type::DYNAMIC_DRAW);
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(Vertex), (const void*)offsetof(Vertex, pos));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 4, GL_FLOAT, false, sizeof(Vertex), (const void*)offsetof(Vertex, col));
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 1, GL_FLOAT, false, sizeof(Vertex), (const void*)offsetof(Vertex, tex));
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 2, GL_FLOAT, false, sizeof(Vertex), (const void*)offsetof(Vertex, UVs));
+    size_t offset = attributes::create(0, 2, sizeof(data::Vertex), 0);
+    offset = attributes::create(1, 4, sizeof(data::Vertex), offset);
+    offset = attributes::create(2, 1, sizeof(data::Vertex), offset);
+    offset = attributes::create(3, 2, sizeof(data::Vertex), offset);
 
-    VertexArray::unbind();
+    vertexArray::unbind();
 }
 
 void Renderer2D::pushQuad(const glm::mat4& model, const glm::vec4& color, uint32_t texID) {
@@ -107,10 +104,10 @@ void Renderer2D::pushQuad(const glm::mat4& model, const glm::vec4& color, uint32
         ++m_TexIndex;
     }
 
-    m_Vertices[m_BatchIndex * 4 + 0] = { model * glm::vec4(vertices[0], 1.0f, 1.0f), color, m_TexIndex - 1, texCoords[0] };
-    m_Vertices[m_BatchIndex * 4 + 1] = { model * glm::vec4(vertices[1], 1.0f, 1.0f), color, m_TexIndex - 1, texCoords[1] };
-    m_Vertices[m_BatchIndex * 4 + 2] = { model * glm::vec4(vertices[2], 1.0f, 1.0f), color, m_TexIndex - 1, texCoords[2] };
-    m_Vertices[m_BatchIndex * 4 + 3] = { model * glm::vec4(vertices[3], 1.0f, 1.0f), color, m_TexIndex - 1, texCoords[3] };
+    m_Vertices[m_BatchIndex * 4 + 0] = { model * glm::vec4(data::vertices[0], 1.0f, 1.0f), color, m_TexIndex - 1, data::texCoords[0] };
+    m_Vertices[m_BatchIndex * 4 + 1] = { model * glm::vec4(data::vertices[1], 1.0f, 1.0f), color, m_TexIndex - 1, data::texCoords[1] };
+    m_Vertices[m_BatchIndex * 4 + 2] = { model * glm::vec4(data::vertices[2], 1.0f, 1.0f), color, m_TexIndex - 1, data::texCoords[2] };
+    m_Vertices[m_BatchIndex * 4 + 3] = { model * glm::vec4(data::vertices[3], 1.0f, 1.0f), color, m_TexIndex - 1, data::texCoords[3] };
 
     ++m_BatchIndex;
 }
@@ -121,7 +118,7 @@ void Renderer2D::flush() {
 }
 
 void Renderer2D::drawBatch() {
-    VertexArray::bind(m_Vao);
+    vertexArray::bind(m_Vao);
 
     m_Shader.setUniform("u_VP", m_Camera->getViewProjection());
     m_Shader.setArrayUniform("u_Textures", m_TextureUniform, m_TexIndex);

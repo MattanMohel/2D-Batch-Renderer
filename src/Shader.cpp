@@ -6,11 +6,11 @@
 Shader::Shader(const std::string vertexSrc, const std::string& fragmentSrc) {
     mRendererID = glCreateProgram();
 
-    setShader(GLtype::VERTEX_SH, vertexSrc);
-    setShader(GLtype::FRAGMENT_SH, fragmentSrc);
+    setShader(gl::type::VERTEX_SH, vertexSrc);
+    setShader(gl::type::FRAGMENT_SH, fragmentSrc);
 }
 
-void Shader::setShader(GLtype shaderType, const std::string& shaderSrc) {
+void Shader::setShader(gl::type shaderType, const std::string& shaderSrc) {
     uint32_t shader = Shader::compileShader(shaderType, shaderSrc);
 
     glAttachShader(mRendererID, shader);
@@ -125,7 +125,7 @@ template<> void Shader::setMatrixArrayUniform<glm::mat2x2>(const std::string& na
     glUniformMatrix2fv(glGetUniformLocation(mRendererID, name.c_str()), count, false, mats);
 }
 
-uint32_t Shader::compileShader(GLtype shaderType, const std::string& shaderSrc) {
+uint32_t Shader::compileShader(gl::type shaderType, const std::string& shaderSrc) {
 	uint32_t id = glCreateShader((uint32_t)shaderType);
 
     const char* csrc = shaderSrc.c_str();
