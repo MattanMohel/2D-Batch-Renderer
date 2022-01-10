@@ -112,29 +112,24 @@ void Application::run() {
     shader.setArrayUniform("u_Textures", textureSlots, 2);
 #endif
 
-#if 1
-    Renderer::initGLEW();
-
-    Renderer renderer;
-    renderer.initBatching();
+    Pipeline::init();
 
     Shader shader(readFile("res/shaders/VertexShader.glsl"), readFile("res/shaders/FragmentShader.glsl"));
     shader.bind();
 
-    ///* Camera Projection */
-    glm::mat4 proj = glm::ortho(-16.0f, 16.0f, -9.0f, 9.0f, -1.0f, 1.0f);
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)); // 'translate' to the right
+    Camera camera;
+
+    Renderer2D renderer;
+    renderer.init(&camera, shader);
+
+    camera.setProjection(16, 9);
+    camera.setView({ 0, 0 });
     
-    glm::mat4 model1 = glm::translate(glm::mat4(1.0f), glm::vec3(-2, 0, 0)); // model 'transform'
-    glm::mat4 model2 = glm::translate(glm::mat4(1.0f), glm::vec3(2, 0, 0)); // model 'transform'
-    
-    glm::mat4 mvp1 = proj * view * model1;
-    glm::mat4 mvp2 = proj * view * model2;
+    camera.updateViewProjection();
 
     uint32_t tex1 = Texture::createTexture("res/textures/doggo.png");
     uint32_t tex2 = Texture::createTexture("res/textures/spitoon.png");
 
-#endif
 
     float r = 0.0f;
     float incr = 0.01f;
@@ -142,11 +137,6 @@ void Application::run() {
     glfwSetTime(0.0);
 
     double curTime = 1, prevTime = 1;
-
-    renderer.mShader = shader;
-    renderer.m_ViewProjection = proj * view;
-
-    // pos * proj * view * model
 
     Transform trans;
 
@@ -156,14 +146,16 @@ void Application::run() {
 
         curTime = glfwGetTime();
 
-        for (int i = -16; i < 16; ++i) {
+        /*for (int i = -16; i < 16; ++i) {
             for (int j = -9; j < 9; ++j) {
                 trans.position() = {(float)i, (float)j};
                 renderer.pushQuad(trans.modelMatrix(), glm::vec4(r, 1.0f, 1.0f, 1.0f), tex1);
             }
-        }
+        }*/
 
-        glClear(GL_COLOR_BUFFER_BIT);
+        renderer.pushQuad(trans.modelMatrix(), glm::vec4(r, 1.0f, 1.0f, 1.0f), tex1);
+
+        Pipeline::endFrame();
 
         if (r >= 1 || r <= 0) {
             r = r >= 1? 1.0f : 0.0f;
@@ -186,7 +178,7 @@ void Application::run() {
 
         prevTime = curTime;
 
-        printf("draw calls: %d\n", renderer.queryFlushCount());
+        printf("draw calls: %d\n", Pipeline::getdrawCalls());
 #if DEBUG_GL
 #endif
     }

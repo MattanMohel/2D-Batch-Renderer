@@ -22,14 +22,16 @@ static void glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severi
     }
 }
 
-uint32_t Renderer::maxTextureSlots = 0;
+int Pipeline::textureSlots = 0;
+int Pipeline::vertexCount  = 0;
+int Pipeline::drawCalls    = 0;
 
-void Renderer::initGLEW() {
+void Pipeline::init() {
     if (glewInit() != GLEW_OK) {
         //ASSERT
     }
 
-    maxTextureSlots = Texture::textureSlotCount();
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &textureSlots);
 
 #if DEBUG_GL
     printf("%s\n", glGetString(GL_VERSION));
@@ -43,28 +45,42 @@ void Renderer::initGLEW() {
     glEnable(GL_BLEND);
 }
 
-void Renderer::initBatching() {
+void Pipeline::draw(size_t vertexCount, size_t indexCount) {
+    glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
 
-    mVertexArrayID = VertexArray::create();
-    VertexArray::bind(mVertexArrayID);
+    ++drawCalls;
+    vertexCount += vertexCount;
+}
 
-    mVertexBufferID = VertexBuffer::create(nullptr, 4 * MAX_BATCH_QUAD_COUNT, sizeof(Vertex), GLtype::DYNAMIC_DRAW);
-    VertexBuffer::bind(mVertexBufferID);
+void Pipeline::endFrame() {
+    glClear(GL_COLOR_BUFFER_BIT);
 
-    mIndexBufferID = IndexBuffer::create(nullptr, 6 * MAX_BATCH_QUAD_COUNT, GLtype::DYNAMIC_DRAW);
-    IndexBuffer::bind(mIndexBufferID);
+    drawCalls   = 0;
+    vertexCount = 0;
+}
+
+void Renderer2D::init(Camera* camera, const Shader& shader) {
+    m_Camera = camera;
+    m_Shader = shader;
+
+    m_Vao = VertexArray::create();
+    VertexArray::bind(m_Vao);
+    m_Vbo = VertexBuffer::create(nullptr, 4 * MAX_BATCH_QUAD_COUNT, sizeof(Vertex), GLtype::DYNAMIC_DRAW);
+    VertexBuffer::bind(m_Vbo);
+    m_Ibo = IndexBuffer::create(nullptr, 6 * MAX_BATCH_QUAD_COUNT, GLtype::DYNAMIC_DRAW);
+    IndexBuffer::bind(m_Ibo);
 
     for (uint32_t i = 0; i < MAX_BATCH_QUAD_COUNT; ++i) {
         // Index Buffer
-        mBatchIndexBuffer[i * 6 + 0] = i * 4 + 0;
-        mBatchIndexBuffer[i * 6 + 1] = i * 4 + 1;
-        mBatchIndexBuffer[i * 6 + 2] = i * 4 + 2;
-        mBatchIndexBuffer[i * 6 + 3] = i * 4 + 2;
-        mBatchIndexBuffer[i * 6 + 4] = i * 4 + 3;
-        mBatchIndexBuffer[i * 6 + 5] = i * 4 + 0;
+        m_Indices[i * 6 + 0] = i * 4 + 0;
+        m_Indices[i * 6 + 1] = i * 4 + 1;
+        m_Indices[i * 6 + 2] = i * 4 + 2;
+        m_Indices[i * 6 + 3] = i * 4 + 2;
+        m_Indices[i * 6 + 4] = i * 4 + 3;
+        m_Indices[i * 6 + 5] = i * 4 + 0;
     }
 
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(mBatchIndexBuffer), mBatchIndexBuffer, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(m_Indices), m_Indices, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(Vertex), (const void*)offsetof(Vertex, pos));
@@ -78,55 +94,39 @@ void Renderer::initBatching() {
     VertexArray::unbind();
 }
 
-void Renderer::pushQuad(const glm::mat4& model, const glm::vec4& color, uint32_t texID) {
-    if (mBufferIndex == MAX_BATCH_QUAD_COUNT || mTextureIndex >= maxTextureSlots) {
+void Renderer2D::pushQuad(const glm::mat4& model, const glm::vec4& color, uint32_t texID) {
+    if (m_BatchIndex == MAX_BATCH_QUAD_COUNT || m_TexIndex >= Pipeline::getTextureSlots()) {
         drawBatch();
         flush();
     }
 
-    if (texID > mTextureIndex) {
-        glBindTextureUnit(mTextureIndex + 1, texID);
-        mTextureArray[mTextureIndex] = texID;
-        ++mTextureIndex;
+    if (texID > m_TexIndex) {
+        glBindTextureUnit(m_TexIndex + 1, texID);
+        m_TextureUniform[m_TexIndex] = texID;
+
+        ++m_TexIndex;
     }
-    
-    mBatchVertexBuffer[mBufferIndex * 4 + 0] = { model * glm::vec4(vertices[0], 1.0f, 1.0f), color, mTextureIndex - 1, texCoords[0] };
-    mBatchVertexBuffer[mBufferIndex * 4 + 1] = { model * glm::vec4(vertices[1], 1.0f, 1.0f), color, mTextureIndex - 1, texCoords[1] };
-    mBatchVertexBuffer[mBufferIndex * 4 + 2] = { model * glm::vec4(vertices[2], 1.0f, 1.0f), color, mTextureIndex - 1, texCoords[2] };
-    mBatchVertexBuffer[mBufferIndex * 4 + 3] = { model * glm::vec4(vertices[3], 1.0f, 1.0f), color, mTextureIndex - 1, texCoords[3] };
 
-    ++mBufferIndex;
+    m_Vertices[m_BatchIndex * 4 + 0] = { model * glm::vec4(vertices[0], 1.0f, 1.0f), color, m_TexIndex - 1, texCoords[0] };
+    m_Vertices[m_BatchIndex * 4 + 1] = { model * glm::vec4(vertices[1], 1.0f, 1.0f), color, m_TexIndex - 1, texCoords[1] };
+    m_Vertices[m_BatchIndex * 4 + 2] = { model * glm::vec4(vertices[2], 1.0f, 1.0f), color, m_TexIndex - 1, texCoords[2] };
+    m_Vertices[m_BatchIndex * 4 + 3] = { model * glm::vec4(vertices[3], 1.0f, 1.0f), color, m_TexIndex - 1, texCoords[3] };
+
+    ++m_BatchIndex;
 }
 
-void Renderer::flush() {
-    ++mFlushCount;
-    mTextureIndex = 0;
-    mBufferIndex = 0;
+void Renderer2D::flush() {
+    m_BatchIndex = 0;
+    m_TexIndex   = 0;
 }
 
-uint32_t Renderer::queryFlushCount() { 
-    uint32_t flushCount = mFlushCount; 
-    mFlushCount = 0; return flushCount; 
-}
+void Renderer2D::drawBatch() {
+    VertexArray::bind(m_Vao);
 
-void Renderer::drawBatch() {
-    VertexArray::bind(mVertexArrayID);
+    m_Shader.setUniform("u_VP", m_Camera->getViewProjection());
+    m_Shader.setArrayUniform("u_Textures", m_TextureUniform, m_TexIndex);
 
-    mShader.bind();
+    glNamedBufferSubData(m_Vbo, 0, sizeof(m_Vertices), m_Vertices);
 
-    mShader.setUniform("u_VP", m_ViewProjection);
-    mShader.setArrayUniform("u_Textures", mTextureArray, mTextureIndex);
-
-    glNamedBufferSubData(mVertexBufferID, 0, sizeof(mBatchVertexBuffer), mBatchVertexBuffer);
-
-    glDrawElements(GL_TRIANGLES, 6 * mBufferIndex, GL_UNSIGNED_INT, nullptr);
-}
-
-void Renderer::draw(const VertexArray& vertexArray, const Shader& shader) {
-    vertexArray.bind();
-    shader.bind();
-
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+    Pipeline::draw(4 * m_BatchIndex, 6 * m_BatchIndex);
 }

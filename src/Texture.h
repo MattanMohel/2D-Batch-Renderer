@@ -14,8 +14,6 @@ public:
 
 	uint32_t getRendererID() const { return mRendererID; }
 
-	static int textureSlotCount();
-
 	static uint32_t createTexture(const std::string& texturePath);
 
 private:

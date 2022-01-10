@@ -38,13 +38,6 @@ void Texture::unbind() const {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-int Texture::textureSlotCount() {
-	int textureSlots;
-
-	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &textureSlots);
-	return textureSlots;
-}
-
 uint32_t Texture::createTexture(const std::string& texturePath) {
 
 	int width, height, bitsPerPixel;
