@@ -5,7 +5,6 @@
 struct Vertex {
 	glm::vec2 pos;
 	glm::vec4 col;
-	float tex;
+	uint32_t tex;
 	glm::vec2 UVs;
-	float mvp;
 };

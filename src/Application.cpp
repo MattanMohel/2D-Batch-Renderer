@@ -2,11 +2,14 @@
 
 #include <fstream>
 
-#include <algorithm>
+#include <iostream>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
+
+#include "Transform.h"
 
 #include "Renderer.h"
 
@@ -118,10 +121,8 @@ void Application::run() {
     Shader shader(readFile("res/shaders/VertexShader.glsl"), readFile("res/shaders/FragmentShader.glsl"));
     shader.bind();
 
-    renderer.setShader(shader);
-
     ///* Camera Projection */
-    glm::mat4 proj = glm::ortho(-64.0f, 64.0f, -36.0f, 36.0f, -1.0f, 1.0f);
+    glm::mat4 proj = glm::ortho(-16.0f, 16.0f, -9.0f, 9.0f, -1.0f, 1.0f);
     glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)); // 'translate' to the right
     
     glm::mat4 model1 = glm::translate(glm::mat4(1.0f), glm::vec3(-2, 0, 0)); // model 'transform'
@@ -142,11 +143,25 @@ void Application::run() {
 
     double curTime = 1, prevTime = 1;
 
+    renderer.mShader = shader;
+    renderer.m_ViewProjection = proj * view;
+
+    // pos * proj * view * model
+
+    Transform trans;
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(mWindow)) {
         /* Render here */
 
         curTime = glfwGetTime();
+
+        for (int i = -16; i < 16; ++i) {
+            for (int j = -9; j < 9; ++j) {
+                trans.position() = {(float)i, (float)j};
+                renderer.pushQuad(trans.modelMatrix(), glm::vec4(r, 1.0f, 1.0f, 1.0f), tex1);
+            }
+        }
 
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -157,12 +172,6 @@ void Application::run() {
 
         r += incr;
 
-        for (float i = 0; i < 512; i++) {
-            for (float j = 0; j < 72; j++) {
-                glm::mat4 mvp = proj * view * glm::translate(glm::mat4(1.0f), glm::vec3(r * (float)(i - 256)/4, j - 36, 0));
-                renderer.pushQuad(glm::mat4(mvp), glm::vec4(r, 1.0f, 1.0f, 1.0f), tex1);
-            }
-        }
 
         renderer.drawBatch();
         renderer.flush();
@@ -177,8 +186,8 @@ void Application::run() {
 
         prevTime = curTime;
 
-#if DEBUG_GL
         printf("draw calls: %d\n", renderer.queryFlushCount());
+#if DEBUG_GL
 #endif
     }
 

@@ -1,5 +1,7 @@
 #include "Renderer.h"
 
+#include <iostream>
+
 #include <GL/glew.h>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -42,6 +44,7 @@ void Renderer::initGLEW() {
 }
 
 void Renderer::initBatching() {
+
     mVertexArrayID = VertexArray::create();
     VertexArray::bind(mVertexArrayID);
 
@@ -51,7 +54,7 @@ void Renderer::initBatching() {
     mIndexBufferID = IndexBuffer::create(nullptr, 6 * MAX_BATCH_QUAD_COUNT, GLtype::DYNAMIC_DRAW);
     IndexBuffer::bind(mIndexBufferID);
 
-    for (int i = 0; i < MAX_BATCH_QUAD_COUNT; ++i) {
+    for (uint32_t i = 0; i < MAX_BATCH_QUAD_COUNT; ++i) {
         // Index Buffer
         mBatchIndexBuffer[i * 6 + 0] = i * 4 + 0;
         mBatchIndexBuffer[i * 6 + 1] = i * 4 + 1;
@@ -59,11 +62,6 @@ void Renderer::initBatching() {
         mBatchIndexBuffer[i * 6 + 3] = i * 4 + 2;
         mBatchIndexBuffer[i * 6 + 4] = i * 4 + 3;
         mBatchIndexBuffer[i * 6 + 5] = i * 4 + 0;
-        // Vertex Buffer
-        mBatchVertexBuffer[i * 4 + 0] = { glm::vec2(-1.0f, -1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), (float)i, glm::vec2(0.0f, 0.0f), (float)i };
-        mBatchVertexBuffer[i * 4 + 1] = { glm::vec2(-1.0f,  1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), (float)i, glm::vec2(0.0f, 1.0f), (float)i };
-        mBatchVertexBuffer[i * 4 + 2] = { glm::vec2(1.0f,  1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), (float)i, glm::vec2(1.0f, 1.0f), (float)i };
-        mBatchVertexBuffer[i * 4 + 3] = { glm::vec2(1.0f, -1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), (float)i, glm::vec2(1.0f, 0.0f), (float)i };
     }
 
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(mBatchIndexBuffer), mBatchIndexBuffer, GL_DYNAMIC_DRAW);
@@ -76,13 +74,11 @@ void Renderer::initBatching() {
     glVertexAttribPointer(2, 1, GL_FLOAT, false, sizeof(Vertex), (const void*)offsetof(Vertex, tex));
     glEnableVertexAttribArray(3);
     glVertexAttribPointer(3, 2, GL_FLOAT, false, sizeof(Vertex), (const void*)offsetof(Vertex, UVs));
-    glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 1, GL_FLOAT, false, sizeof(Vertex), (const void*)offsetof(Vertex, mvp));
 
     VertexArray::unbind();
 }
 
-void Renderer::pushQuad(const glm::mat4& mvp, const glm::vec4& color, uint32_t texID) {
+void Renderer::pushQuad(const glm::mat4& model, const glm::vec4& color, uint32_t texID) {
     if (mBufferIndex == MAX_BATCH_QUAD_COUNT || mTextureIndex >= maxTextureSlots) {
         drawBatch();
         flush();
@@ -93,18 +89,12 @@ void Renderer::pushQuad(const glm::mat4& mvp, const glm::vec4& color, uint32_t t
         mTextureArray[mTextureIndex] = texID;
         ++mTextureIndex;
     }
+    
+    mBatchVertexBuffer[mBufferIndex * 4 + 0] = { model * glm::vec4(vertices[0], 1.0f, 1.0f), color, mTextureIndex - 1, texCoords[0] };
+    mBatchVertexBuffer[mBufferIndex * 4 + 1] = { model * glm::vec4(vertices[1], 1.0f, 1.0f), color, mTextureIndex - 1, texCoords[1] };
+    mBatchVertexBuffer[mBufferIndex * 4 + 2] = { model * glm::vec4(vertices[2], 1.0f, 1.0f), color, mTextureIndex - 1, texCoords[2] };
+    mBatchVertexBuffer[mBufferIndex * 4 + 3] = { model * glm::vec4(vertices[3], 1.0f, 1.0f), color, mTextureIndex - 1, texCoords[3] };
 
-    memcpy(&mMatrixArray[mBufferIndex * 16], glm::value_ptr(mvp), 16 * sizeof(float));
-    
-    mBatchVertexBuffer[mBufferIndex * 4 + 0].col = color;
-    mBatchVertexBuffer[mBufferIndex * 4 + 1].col = color;
-    mBatchVertexBuffer[mBufferIndex * 4 + 2].col = color;
-    mBatchVertexBuffer[mBufferIndex * 4 + 3].col = color;    
-    
-    mBatchVertexBuffer[mBufferIndex * 4 + 0].tex = mTextureIndex - 1;
-    mBatchVertexBuffer[mBufferIndex * 4 + 1].tex = mTextureIndex - 1;
-    mBatchVertexBuffer[mBufferIndex * 4 + 2].tex = mTextureIndex - 1;
-    mBatchVertexBuffer[mBufferIndex * 4 + 3].tex = mTextureIndex - 1;
     ++mBufferIndex;
 }
 
@@ -124,7 +114,7 @@ void Renderer::drawBatch() {
 
     mShader.bind();
 
-    mShader.setMatrixArrayUniform<glm::mat4>("u_MVPs", mMatrixArray, mBufferIndex);
+    mShader.setUniform("u_VP", m_ViewProjection);
     mShader.setArrayUniform("u_Textures", mTextureArray, mTextureIndex);
 
     glNamedBufferSubData(mVertexBufferID, 0, sizeof(mBatchVertexBuffer), mBatchVertexBuffer);

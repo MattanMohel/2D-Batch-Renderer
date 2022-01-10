@@ -8,7 +8,21 @@
 #include "Vertex.h"
 
 #define DEBUG_GL 0
-#define MAX_BATCH_QUAD_COUNT 256
+#define MAX_BATCH_QUAD_COUNT 1000
+
+static constexpr glm::vec2 vertices[] = {
+	glm::vec2(-1.0f, -1.0f),
+	glm::vec2(-1.0f,  1.0f),
+	glm::vec2( 1.0f,  1.0f),
+	glm::vec2( 1.0f, -1.0f),
+};
+
+static constexpr glm::vec2 texCoords[] = {
+	glm::vec2(0.0f, 0.0f),
+	glm::vec2(0.0f, 1.0f),
+	glm::vec2(1.0f, 1.0f),
+	glm::vec2(1.0f, 0.0f),
+};
 
 class Renderer {
 
@@ -17,9 +31,7 @@ public:
 
 	void initBatching();
 
-	void setShader(const Shader& shader) { mShader = shader; };
-
-	void pushQuad(const glm::mat4& mvp, const glm::vec4& color, uint32_t texID);
+	void pushQuad(const glm::mat4& model, const glm::vec4& color, uint32_t texID);
 	void flush();
 
 	uint32_t queryFlushCount();
@@ -27,6 +39,9 @@ public:
 	void drawBatch();
 
 	static void draw(const VertexArray& vertexArray, const Shader& shader);
+
+	Shader mShader;
+	glm::mat4 m_ViewProjection;
 
 private:
 	uint32_t mVertexBufferID = -1;
@@ -38,8 +53,6 @@ private:
 
 	float mMatrixArray[16 * MAX_BATCH_QUAD_COUNT];
 	int   mTextureArray[MAX_BATCH_QUAD_COUNT];
-
-	Shader mShader;
 
 	uint32_t mBufferIndex = 0;
 	uint32_t mTextureIndex = 0;
