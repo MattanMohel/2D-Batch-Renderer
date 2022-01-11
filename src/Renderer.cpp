@@ -81,6 +81,13 @@ void Renderer2D::init(Camera* camera, const Shader& shader) {
         m_Indices[i * 6 + 5] = i * 4 + 0;
     }
 
+    int textureIndices[32];
+    for (int i = 0; i < 32; ++i) {
+        textureIndices[i] = i;
+    }
+
+    m_Shader.setArrayUniform("u_Textures", textureIndices, 32);
+
     indexBuffer::setBuffer(m_Indices, 6 * MAX_BATCH_QUAD_COUNT, sizeof(uint32_t), gl::type::DYNAMIC_DRAW);
 
     size_t offset = attributes::create(0, 2, sizeof(data::Vertex), 0);
@@ -89,6 +96,9 @@ void Renderer2D::init(Camera* camera, const Shader& shader) {
     offset = attributes::create(3, 2, sizeof(data::Vertex), offset);
 
     vertexArray::unbind();
+
+    uint32_t color = 0xffffffff;
+    uint32_t whiteTex = texture::create(1, 1, &color);
 }
 
 void Renderer2D::pushQuad(const glm::mat4& model, const glm::vec4& color, uint32_t texID) {
@@ -97,33 +107,38 @@ void Renderer2D::pushQuad(const glm::mat4& model, const glm::vec4& color, uint32
         flush();
     }
 
-    if (texID > m_TexIndex) {
-        glBindTextureUnit(m_TexIndex + 1, texID);
-        m_TextureUniform[m_TexIndex] = texID;
+    int texPos = std::find(&m_TextureIndices[0], &m_TextureIndices[31 + END], texID) - &m_TextureIndices[0];
 
-        ++m_TexIndex;
+    if (texPos == 32) {
+         ++m_TexIndex;
+
+         texture::bind(texID, m_TexIndex);
+         m_TextureIndices[m_TexIndex] = texID;
+
+         texPos = m_TexIndex;
     }
 
-    m_Vertices[m_BatchIndex * 4 + 0] = { model * glm::vec4(data::vertices[0], 1.0f, 1.0f), color, m_TexIndex - 1, data::texCoords[0] };
-    m_Vertices[m_BatchIndex * 4 + 1] = { model * glm::vec4(data::vertices[1], 1.0f, 1.0f), color, m_TexIndex - 1, data::texCoords[1] };
-    m_Vertices[m_BatchIndex * 4 + 2] = { model * glm::vec4(data::vertices[2], 1.0f, 1.0f), color, m_TexIndex - 1, data::texCoords[2] };
-    m_Vertices[m_BatchIndex * 4 + 3] = { model * glm::vec4(data::vertices[3], 1.0f, 1.0f), color, m_TexIndex - 1, data::texCoords[3] };
+    m_Vertices[m_BatchIndex * 4 + 0] = { model * glm::vec4(data::vertices[0], 1.0f, 1.0f), color, (float)texPos, data::texCoords[0] };
+    m_Vertices[m_BatchIndex * 4 + 1] = { model * glm::vec4(data::vertices[1], 1.0f, 1.0f), color, (float)texPos, data::texCoords[1] };
+    m_Vertices[m_BatchIndex * 4 + 2] = { model * glm::vec4(data::vertices[2], 1.0f, 1.0f), color, (float)texPos, data::texCoords[2] };
+    m_Vertices[m_BatchIndex * 4 + 3] = { model * glm::vec4(data::vertices[3], 1.0f, 1.0f), color, (float)texPos, data::texCoords[3] };
 
     ++m_BatchIndex;
 }
 
 void Renderer2D::flush() {
-    m_BatchIndex = 0;
-    m_TexIndex   = 0;
+    m_BatchIndex = +0;
+    m_TexIndex   = -1;
 }
 
 void Renderer2D::drawBatch() {
     vertexArray::bind(m_Vao);
 
     m_Shader.setUniform("u_VP", m_Camera->getViewProjection());
-    m_Shader.setArrayUniform("u_Textures", m_TextureUniform, m_TexIndex);
 
     glNamedBufferSubData(m_Vbo, 0, sizeof(m_Vertices), m_Vertices);
 
     Pipeline::draw(4 * m_BatchIndex, 6 * m_BatchIndex);
+
+    memset(m_TextureIndices, 0, 32 * sizeof(int));
 }

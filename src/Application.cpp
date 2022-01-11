@@ -81,16 +81,16 @@ void Application::run() {
     camera.updateViewProjection();
 
     uint32_t tex1 = texture::create("res/textures/doggo.png");
-    texture::bind(tex1);
-
     uint32_t tex2 = texture::create("res/textures/spitoon.png");
-    texture::bind(tex2);
+
 
     glfwSetTime(0.0);
 
     double curTime = 1, prevTime = 1;
 
-    Transform trans;
+    Transform trans1;
+    Transform trans2;
+    Transform trans3;
 
     glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
@@ -100,12 +100,16 @@ void Application::run() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::DragFloat2("transform", glm::value_ptr(trans.position()), 0.1f, -10.0f, 10.0f);
+        ImGui::DragFloat2("transform1", glm::value_ptr(trans1.position()), 0.1f, -10.0f, 10.0f);
+        ImGui::DragFloat2("transform2", glm::value_ptr(trans2.position()), 0.1f, -10.0f, 10.0f);
+        ImGui::DragFloat2("transform3", glm::value_ptr(trans3.position()), 0.1f, -10.0f, 10.0f);
         ImGui::ColorPicker4("color", glm::value_ptr(color));
 
         curTime = glfwGetTime();
 
-        renderer.pushQuad(trans.modelMatrix(), color, tex1);
+        renderer.pushQuad(trans1.modelMatrix(), color);
+        renderer.pushQuad(trans2.modelMatrix(), color, tex1);
+        renderer.pushQuad(trans3.modelMatrix(), color, tex2);
 
         Pipeline::endFrame();
 
